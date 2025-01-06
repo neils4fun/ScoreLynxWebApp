@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useGame } from '../context/GameContext';
-import { fetchMatchplayLeaderboard, fetchPlayerLeaderboard, fetchTeamLeaderboard, fetchSkins } from '../api/golfApi';
+import { fetchMatchplayLeaderboard, fetchPlayerLeaderboard, fetchTeamLeaderboard, fetchSkins, fetchPayouts } from '../api/golfApi';
 import { MatchplayLeaderboard } from '../components/leaderboard/MatchplayLeaderboard';
 import { PlayerLeaderboard } from '../components/leaderboard/PlayerLeaderboard';
 import { TeamLeaderboard } from '../components/leaderboard/TeamLeaderboard';
 import { SkinsLeaderboard } from '../components/leaderboard/SkinsLeaderboard';
-import type { MatchplayLeader, PlayerLeader, TeamLeader, Skin } from '../types/api';
+import { PayoutsLeaderboard } from '../components/leaderboard/PayoutsLeaderboard';
+import type { MatchplayLeader, PlayerLeader, TeamLeader, Skin, Payout } from '../types/api';
 
 export function LeaderboardScreen() {
   const [activeTab, setActiveTab] = useState('team');
@@ -14,6 +15,7 @@ export function LeaderboardScreen() {
   const [playerData, setPlayerData] = useState<PlayerLeader[]>([]);
   const [teamData, setTeamData] = useState<TeamLeader[]>([]);
   const [skinsData, setSkinsData] = useState<Skin[]>([]);
+  const [payoutsData, setPayoutsData] = useState<Payout[]>([]);
   const [gameType, setGameType] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -53,6 +55,10 @@ export function LeaderboardScreen() {
         } else if (activeTab === 'skins') {
           const data = await fetchSkins(selectedGame.gameID);
           setSkinsData(data.skins.flat());
+          setGameType(data.gameTypes[0] || '');
+        } else if (activeTab === 'payouts') {
+          const data = await fetchPayouts(selectedGame.gameID);
+          setPayoutsData(data.payouts.flat());
           setGameType(data.gameTypes[0] || '');
         }
       } catch (err) {
@@ -113,7 +119,18 @@ export function LeaderboardScreen() {
       );
     }
 
-    return <p className="text-gray-600 text-center">This leaderboard type is not yet implemented</p>;
+    if (activeTab === 'payouts') {
+      return (
+        <PayoutsLeaderboard 
+          payouts={payoutsData}
+          isLoading={isLoading}
+          error={error}
+          gameType={gameType}
+        />
+      );
+    }
+
+    return null;
   };
 
   return (

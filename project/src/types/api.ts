@@ -104,3 +104,22 @@ export interface SkinsResponse {
   skins: Skin[][];
   gameTypes: string[];
 }
+
+export interface Payout {
+  payoutID: string;
+  payoutName: string;
+  gamePayout: number;
+  skinsPayout: number;
+  totalPayout: number;
+}
+
+export interface PayoutsResponse {
+  status: {
+    code: number;
+    message: string;
+  };
+  gameID: string;
+  payouts: Payout[][];
+  headers: string[][];
+  gameTypes: string[];
+}
