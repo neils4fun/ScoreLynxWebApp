@@ -1,5 +1,6 @@
 import { Game } from '../types/api';
 import { GameCard } from './GameCard';
+import { useGame } from '../context/GameContext';
 
 interface GameListProps {
   games: Game[];
@@ -7,6 +8,8 @@ interface GameListProps {
 }
 
 export function GameList({ games, onBack }: GameListProps) {
+  const { selectedGame } = useGame();
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -24,7 +27,11 @@ export function GameList({ games, onBack }: GameListProps) {
       ) : (
         <div className="space-y-3">
           {games.map((game) => (
-            <GameCard key={game.gameID} game={game} />
+            <GameCard 
+              key={game.gameID} 
+              game={game} 
+              isSelected={selectedGame?.gameID === game.gameID}
+            />
           ))}
         </div>
       )}

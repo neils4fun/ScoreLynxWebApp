@@ -46,3 +46,32 @@ export interface MatchplayResponse {
   headers: string[][];
   gameTypes: string[];
 }
+
+export interface PlayerLeader {
+  grossScore: number;
+  absoluteScore: number;
+  relativeScore: number;
+  escScore: number;
+  thruHole: number;
+  holesPlayed: number;
+  gameID: string;
+  playerID: string;
+  playerName: string;
+  lastName: string;
+  firstName: string;
+  handicap: string;
+  popCount: number;
+  didPay: boolean;
+  place: number;
+}
+
+export interface PlayerLeaderboardResponse {
+  status: {
+    code: number;
+    message: string;
+  };
+  gameID: string;
+  leaders: PlayerLeader[][];
+  headers: string[][];
+  gameTypes: string[];
+}

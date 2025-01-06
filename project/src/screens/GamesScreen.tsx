@@ -68,7 +68,7 @@ export function GamesScreen() {
 
   return (
     <div className="p-4">
-      {!selectedGroup ? (
+      {!selectedGroup && (
         <>
           <h1 className="text-2xl font-bold text-gray-900 mb-6">Select Group</h1>
           <SearchField 
@@ -76,7 +76,7 @@ export function GamesScreen() {
             onChange={setSearchTerm}
           />
         </>
-      ) : null}
+      )}
       
       {isLoading && (
         <p className="text-gray-600">Loading...</p>
@@ -90,6 +90,7 @@ export function GamesScreen() {
         <GroupList 
           groups={searchResults} 
           onGroupSelect={handleGroupSelect}
+          selectedGroupId={undefined}
         />
       )}
 
