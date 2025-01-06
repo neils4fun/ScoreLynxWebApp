@@ -1,15 +1,17 @@
 import { useState, useEffect } from 'react';
 import { useGame } from '../context/GameContext';
-import { fetchMatchplayLeaderboard, fetchPlayerLeaderboard } from '../api/golfApi';
+import { fetchMatchplayLeaderboard, fetchPlayerLeaderboard, fetchTeamLeaderboard } from '../api/golfApi';
 import { MatchplayLeaderboard } from '../components/leaderboard/MatchplayLeaderboard';
 import { PlayerLeaderboard } from '../components/leaderboard/PlayerLeaderboard';
-import type { MatchplayLeader, PlayerLeader } from '../types/api';
+import { TeamLeaderboard } from '../components/leaderboard/TeamLeaderboard';
+import type { MatchplayLeader, PlayerLeader, TeamLeader } from '../types/api';
 
 export function LeaderboardScreen() {
   const [activeTab, setActiveTab] = useState('team');
   const { selectedGame } = useGame();
   const [matchplayData, setMatchplayData] = useState<MatchplayLeader[]>([]);
   const [playerData, setPlayerData] = useState<PlayerLeader[]>([]);
+  const [teamData, setTeamData] = useState<TeamLeader[]>([]);
   const [gameType, setGameType] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -32,15 +34,19 @@ export function LeaderboardScreen() {
       setError(null);
 
       try {
-        if (activeTab === 'team' && selectedGame.teamPlayerType === 'Matchplay') {
-          const data = await fetchMatchplayLeaderboard(selectedGame.gameID);
-          const flattenedData = data.leaders.flat();
-          setMatchplayData(flattenedData);
-          setGameType(data.gameTypes[0] || '');
+        if (activeTab === 'team') {
+          if (selectedGame.teamPlayerType === 'Matchplay') {
+            const data = await fetchMatchplayLeaderboard(selectedGame.gameID);
+            setMatchplayData(data.leaders.flat());
+            setGameType(data.gameTypes[0] || '');
+          } else {
+            const data = await fetchTeamLeaderboard(selectedGame.gameID);
+            setTeamData(data.leaders.flat());
+            setGameType(data.gameTypes[0] || '');
+          }
         } else if (activeTab === 'player') {
           const data = await fetchPlayerLeaderboard(selectedGame.gameID);
-          const flattenedData = data.leaders.flat();
-          setPlayerData(flattenedData);
+          setPlayerData(data.leaders.flat());
           setGameType(data.gameTypes[0] || '');
         }
       } catch (err) {
@@ -52,6 +58,46 @@ export function LeaderboardScreen() {
 
     loadLeaderboardData();
   }, [selectedGame, activeTab]);
+
+  const renderLeaderboard = () => {
+    if (!selectedGame) {
+      return <p className="text-gray-600 text-center">Select a game to view leaderboard</p>;
+    }
+
+    if (activeTab === 'team') {
+      if (selectedGame.teamPlayerType === 'Matchplay') {
+        return (
+          <MatchplayLeaderboard 
+            leaders={matchplayData}
+            isLoading={isLoading}
+            error={error}
+            gameType={gameType}
+          />
+        );
+      }
+      return (
+        <TeamLeaderboard 
+          leaders={teamData}
+          isLoading={isLoading}
+          error={error}
+          gameType={gameType}
+        />
+      );
+    }
+
+    if (activeTab === 'player') {
+      return (
+        <PlayerLeaderboard 
+          leaders={playerData}
+          isLoading={isLoading}
+          error={error}
+          gameType={gameType}
+        />
+      );
+    }
+
+    return <p className="text-gray-600 text-center">This leaderboard type is not yet implemented</p>;
+  };
 
   return (
     <div className="p-4">
@@ -77,25 +123,7 @@ export function LeaderboardScreen() {
       </div>
 
       <div className="mt-6">
-        {!selectedGame ? (
-          <p className="text-gray-600 text-center">Select a game to view leaderboard</p>
-        ) : activeTab === 'team' && selectedGame.teamPlayerType === 'Matchplay' ? (
-          <MatchplayLeaderboard 
-            leaders={matchplayData}
-            isLoading={isLoading}
-            error={error}
-            gameType={gameType}
-          />
-        ) : activeTab === 'player' ? (
-          <PlayerLeaderboard 
-            leaders={playerData}
-            isLoading={isLoading}
-            error={error}
-            gameType={gameType}
-          />
-        ) : (
-          <p className="text-gray-600 text-center">This leaderboard type is not yet implemented</p>
-        )}
+        {renderLeaderboard()}
       </div>
     </div>
   );
