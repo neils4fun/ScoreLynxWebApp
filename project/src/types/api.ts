@@ -48,13 +48,11 @@ export interface MatchplayResponse {
 }
 
 export interface TeamLeader {
-  gameID: string;
   teamID: string;
   teamName: string;
-  absoluteScore: number;
   relativeScore: number;
-  thruHole: number;
-  holesPlayed: number;
+  absoluteScore: number;
+  holesPlayed: string;
 }
 
 export interface TeamLeaderboardResponse {
@@ -64,7 +62,6 @@ export interface TeamLeaderboardResponse {
   };
   gameID: string;
   leaders: TeamLeader[][];
-  headers: string[][];
   gameTypes: string[];
 }
 
@@ -74,7 +71,7 @@ export interface PlayerLeader {
   handicap: string;
   grossScore: number;
   relativeScore: number;
-  holesPlayed: number;
+  holesPlayed: string;
 }
 
 export interface PlayerLeaderboardResponse {
@@ -84,6 +81,26 @@ export interface PlayerLeaderboardResponse {
   };
   gameID: string;
   leaders: PlayerLeader[][];
-  headers: string[][];
+  gameTypes: string[];
+}
+
+export interface Skin {
+  playerID: number;
+  firstName: string;
+  lastName: string;
+  type: string;
+  gameID: number;
+  holeNumber: number;
+  score: string;
+  gross: number;
+}
+
+export interface SkinsResponse {
+  status: {
+    code: number;
+    message: string;
+  };
+  gameID: string;
+  skins: Skin[][];
   gameTypes: string[];
 }

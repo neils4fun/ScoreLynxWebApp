@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useGame } from '../context/GameContext';
-import { fetchMatchplayLeaderboard, fetchPlayerLeaderboard, fetchTeamLeaderboard } from '../api/golfApi';
+import { fetchMatchplayLeaderboard, fetchPlayerLeaderboard, fetchTeamLeaderboard, fetchSkins } from '../api/golfApi';
 import { MatchplayLeaderboard } from '../components/leaderboard/MatchplayLeaderboard';
 import { PlayerLeaderboard } from '../components/leaderboard/PlayerLeaderboard';
 import { TeamLeaderboard } from '../components/leaderboard/TeamLeaderboard';
-import type { MatchplayLeader, PlayerLeader, TeamLeader } from '../types/api';
+import { SkinsLeaderboard } from '../components/leaderboard/SkinsLeaderboard';
+import type { MatchplayLeader, PlayerLeader, TeamLeader, Skin } from '../types/api';
 
 export function LeaderboardScreen() {
   const [activeTab, setActiveTab] = useState('team');
@@ -12,6 +13,7 @@ export function LeaderboardScreen() {
   const [matchplayData, setMatchplayData] = useState<MatchplayLeader[]>([]);
   const [playerData, setPlayerData] = useState<PlayerLeader[]>([]);
   const [teamData, setTeamData] = useState<TeamLeader[]>([]);
+  const [skinsData, setSkinsData] = useState<Skin[]>([]);
   const [gameType, setGameType] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -47,6 +49,10 @@ export function LeaderboardScreen() {
         } else if (activeTab === 'player') {
           const data = await fetchPlayerLeaderboard(selectedGame.gameID);
           setPlayerData(data.leaders.flat());
+          setGameType(data.gameTypes[0] || '');
+        } else if (activeTab === 'skins') {
+          const data = await fetchSkins(selectedGame.gameID);
+          setSkinsData(data.skins.flat());
           setGameType(data.gameTypes[0] || '');
         }
       } catch (err) {
@@ -89,6 +95,17 @@ export function LeaderboardScreen() {
       return (
         <PlayerLeaderboard 
           leaders={playerData}
+          isLoading={isLoading}
+          error={error}
+          gameType={gameType}
+        />
+      );
+    }
+
+    if (activeTab === 'skins') {
+      return (
+        <SkinsLeaderboard 
+          skins={skinsData}
           isLoading={isLoading}
           error={error}
           gameType={gameType}

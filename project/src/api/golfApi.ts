@@ -1,4 +1,4 @@
-import { APIResponse, GolfGroup, Game, MatchplayResponse, TeamLeaderboardResponse, PlayerLeaderboardResponse } from '../types/api';
+import { APIResponse, GolfGroup, Game, MatchplayResponse, TeamLeaderboardResponse, PlayerLeaderboardResponse, SkinsResponse } from '../types/api';
 
 const API_BASE = '/slp/sggolfjson.php';
 
@@ -133,6 +133,38 @@ export async function fetchPlayerLeaderboard(gameId: string): Promise<PlayerLead
     return data;
   } catch (error) {
     console.error('Error fetching player leaderboard:', error);
+    throw error;
+  }
+}
+
+export async function fetchSkins(gameId: string): Promise<SkinsResponse> {
+  try {
+    const response = await fetch(`${API_BASE}/getSkins`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        appVersion: "1.2.0 (0.0.1)",
+        source: "SLP",
+        gameID: gameId,
+        deviceID: "arm64"
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json() as SkinsResponse;
+    
+    if (data.status.code !== 0) {
+      throw new Error(data.status.message);
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error fetching skins:', error);
     throw error;
   }
 }
