@@ -31,6 +31,8 @@ export function LeaderboardScreen() {
   };
 
   useEffect(() => {
+    const abortController = new AbortController();
+
     async function loadLeaderboardData() {
       if (!selectedGame?.gameID) return;
 
@@ -38,37 +40,57 @@ export function LeaderboardScreen() {
       setError(null);
 
       try {
+        const signal = abortController.signal;
+
         if (activeTab === 'team') {
           if (selectedGame.teamPlayerType === 'Matchplay') {
             const data = await fetchMatchplayLeaderboard(selectedGame.gameID);
-            setMatchplayData(data.leaders.flat());
-            setGameType(data.gameTypes[0] || '');
+            if (!signal.aborted) {
+              setMatchplayData(data.leaders.flat());
+              setGameType(data.gameTypes[0] || '');
+            }
           } else {
             const data = await fetchTeamLeaderboard(selectedGame.gameID);
-            setTeamData(data.leaders.flat());
-            setGameType(data.gameTypes[0] || '');
+            if (!signal.aborted) {
+              setTeamData(data.leaders.flat());
+              setGameType(data.gameTypes[0] || '');
+            }
           }
         } else if (activeTab === 'player') {
           const data = await fetchPlayerLeaderboard(selectedGame.gameID);
-          setPlayerData(data.leaders.flat());
-          setGameType(data.gameTypes[0] || '');
+          if (!signal.aborted) {
+            setPlayerData(data.leaders.flat());
+            setGameType(data.gameTypes[0] || '');
+          }
         } else if (activeTab === 'skins') {
           const data = await fetchSkins(selectedGame.gameID);
-          setSkinsData(data.skins.flat());
-          setGameType(data.gameTypes[0] || '');
+          if (!signal.aborted) {
+            setSkinsData(data.skins.flat());
+            setGameType(data.gameTypes[0] || '');
+          }
         } else if (activeTab === 'payouts') {
           const data = await fetchPayouts(selectedGame.gameID);
-          setPayoutsData(data.payouts.flat());
-          setGameType(data.gameTypes[0] || '');
+          if (!signal.aborted) {
+            setPayoutsData(data.payouts.flat());
+            setGameType(data.gameTypes[0] || '');
+          }
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load leaderboard data');
+        if (!abortController.signal.aborted) {
+          setError(err instanceof Error ? err.message : 'Failed to load leaderboard data');
+        }
       } finally {
-        setIsLoading(false);
+        if (!abortController.signal.aborted) {
+          setIsLoading(false);
+        }
       }
     }
 
     loadLeaderboardData();
+
+    return () => {
+      abortController.abort();
+    };
   }, [selectedGame, activeTab]);
 
   const renderLeaderboard = () => {
