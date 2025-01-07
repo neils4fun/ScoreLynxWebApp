@@ -1,4 +1,4 @@
-import { MatchplayLeader } from '../../types/api';
+import { MatchplayLeader } from '../../types/leaderboard';
 
 interface MatchplayLeaderboardProps {
   leaders: MatchplayLeader[];

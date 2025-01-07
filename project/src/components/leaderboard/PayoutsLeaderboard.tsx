@@ -1,4 +1,4 @@
-import { Payout } from '../../types/api';
+import { Payout } from '../../types/leaderboard';
 
 interface PayoutsLeaderboardProps {
   payouts: Payout[];

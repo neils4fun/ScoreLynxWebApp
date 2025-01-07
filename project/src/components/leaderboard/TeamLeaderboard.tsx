@@ -1,4 +1,4 @@
-import { TeamLeader } from '../../types/api';
+import { TeamLeader } from '../../types/leaderboard';
 
 interface TeamLeaderboardProps {
   leaders: TeamLeader[];

@@ -1,4 +1,4 @@
-import { PlayerLeader } from '../../types/api';
+import { PlayerLeader } from '../../types/leaderboard';
 
 interface PlayerLeaderboardProps {
   leaders: PlayerLeader[];

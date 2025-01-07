@@ -1,4 +1,4 @@
-import { GolfGroup } from '../types/api';
+import { GolfGroup } from '../types/game';
 import { Lock } from 'lucide-react';
 
 interface GroupCardProps {

@@ -3,11 +3,11 @@ import { GroupList } from '../components/GroupList';
 import { GameList } from '../components/GameList';
 import { SearchField } from '../components/SearchField';
 import { useDebounce } from '../hooks/useDebounce';
-import { fetchGolfGroups, fetchGroupGames } from '../api/golfApi';
+import { fetchGolfGroups, fetchGroupGames } from '../api/gameApi';
 import { useGroup } from '../context/GroupContext';
-import type { GolfGroup } from '../types/api';
+import type { GolfGroup } from '../types/game';
 
-export function GamesScreen() {
+export default function GamesScreen() {
   const { 
     selectedGroup, 
     setSelectedGroup, 

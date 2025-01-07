@@ -1,4 +1,4 @@
-import { Skin } from '../../types/api';
+import { Skin } from '../../types/leaderboard';
 
 interface SkinsLeaderboardProps {
   skins: Skin[];

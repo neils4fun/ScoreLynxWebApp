@@ -1,60 +1,11 @@
-import { APIResponse, GolfGroup, Game, MatchplayResponse, TeamLeaderboardResponse, PlayerLeaderboardResponse, SkinsResponse, PayoutsResponse } from '../types/api';
-
-const API_BASE = '/slp/sggolfjson.php';
-
-export async function fetchGolfGroups(searchTerm: string = 'test'): Promise<GolfGroup[]> {
-  try {
-    const response = await fetch(`${API_BASE}/getGroupList`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ search: searchTerm }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json() as APIResponse<GolfGroup>;
-    
-    if (data.status.code !== 0) {
-      throw new Error(data.status.message);
-    }
-
-    return data.groups;
-  } catch (error) {
-    console.error('Error fetching golf groups:', error);
-    throw error;
-  }
-}
-
-export async function fetchGroupGames(groupId: string): Promise<Game[]> {
-  try {
-    const response = await fetch(`${API_BASE}/getGameList`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ groupID: groupId }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json() as APIResponse<Game>;
-    
-    if (data.status.code !== 0) {
-      throw new Error(data.status.message);
-    }
-
-    return data.games || [];
-  } catch (error) {
-    console.error('Error fetching group games:', error);
-    throw error;
-  }
-}
+import { API_BASE } from './config';
+import { 
+  MatchplayResponse, 
+  TeamLeaderboardResponse, 
+  PlayerLeaderboardResponse, 
+  SkinsResponse, 
+  PayoutsResponse 
+} from '../types/leaderboard';
 
 export async function fetchMatchplayLeaderboard(gameId: string): Promise<MatchplayResponse> {
   try {
@@ -169,7 +120,6 @@ export async function fetchSkins(gameId: string): Promise<SkinsResponse> {
   }
 }
 
-// Add new fetchPayouts function
 export async function fetchPayouts(gameId: string): Promise<PayoutsResponse> {
   try {
     const response = await fetch(`${API_BASE}/getPayoutsLeaderboard`, {

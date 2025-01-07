@@ -1,14 +1,26 @@
 import { useState, useEffect } from 'react';
 import { useGame } from '../context/GameContext';
-import { fetchMatchplayLeaderboard, fetchPlayerLeaderboard, fetchTeamLeaderboard, fetchSkins, fetchPayouts } from '../api/golfApi';
+import { 
+  fetchMatchplayLeaderboard,
+  fetchPlayerLeaderboard,
+  fetchTeamLeaderboard,
+  fetchSkins,
+  fetchPayouts
+} from '../api/leaderboardApi';
 import { MatchplayLeaderboard } from '../components/leaderboard/MatchplayLeaderboard';
 import { PlayerLeaderboard } from '../components/leaderboard/PlayerLeaderboard';
 import { TeamLeaderboard } from '../components/leaderboard/TeamLeaderboard';
 import { SkinsLeaderboard } from '../components/leaderboard/SkinsLeaderboard';
 import { PayoutsLeaderboard } from '../components/leaderboard/PayoutsLeaderboard';
-import type { MatchplayLeader, PlayerLeader, TeamLeader, Skin, Payout } from '../types/api';
+import type { 
+  MatchplayLeader,
+  PlayerLeader,
+  TeamLeader,
+  Skin,
+  Payout
+} from '../types/leaderboard';
 
-export function LeaderboardScreen() {
+export default function LeaderboardScreen() {
   const [activeTab, setActiveTab] = useState('team');
   const { selectedGame } = useGame();
   const [matchplayData, setMatchplayData] = useState<MatchplayLeader[]>([]);

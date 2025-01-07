@@ -1,29 +1,3 @@
-export interface APIResponse<T> {
-  status: {
-    code: number;
-    message: string;
-  };
-  groups: T[];
-  games?: Game[];
-}
-
-export interface GolfGroup {
-  groupID: string;
-  groupName: string;
-  password?: string;
-}
-
-export interface Game {
-  gameID: string;
-  gameKey: string;
-  gameType: string;
-  skinType: string;
-  courseName: string;
-  teeName: string;
-  round: string;
-  teamPlayerType: string;
-}
-
 export interface MatchplayLeader {
   gameID: string;
   matchID: string;

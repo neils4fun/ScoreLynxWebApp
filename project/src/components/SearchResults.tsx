@@ -1,4 +1,4 @@
-import { GolfGroup } from '../types/api';
+import { GolfGroup } from '../types/game';
 import { GroupCard } from './GroupCard';
 
 interface SearchResultsProps {

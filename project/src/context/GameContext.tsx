@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, ReactNode } from 'react';
-import { Game } from '../types/api';
+import { Game } from '../types/game';
 
 interface GameContextType {
   selectedGame: Game | null;

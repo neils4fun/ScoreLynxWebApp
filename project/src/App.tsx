@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { TabBar } from './components/navigation/TabBar';
-import { GamesScreen } from './screens/GamesScreen';
+import GamesScreen from './screens/GamesScreen';
 import { ScorecardScreen } from './screens/ScorecardScreen';
-import { LeaderboardScreen } from './screens/LeaderboardScreen';
+import LeaderboardScreen from './screens/LeaderboardScreen';
 import { GameProvider } from './context/GameContext';
 import { GroupProvider } from './context/GroupContext';
 

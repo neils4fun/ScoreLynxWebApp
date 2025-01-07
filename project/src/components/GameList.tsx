@@ -1,4 +1,4 @@
-import { Game } from '../types/api';
+import { Game } from '../types/game';
 import { GameCard } from './GameCard';
 import { useGame } from '../context/GameContext';
 

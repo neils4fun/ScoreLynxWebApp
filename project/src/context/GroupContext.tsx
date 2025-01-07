@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, ReactNode } from 'react';
-import { GolfGroup, Game } from '../types/api';
+import { GolfGroup, Game } from '../types/game';
 
 interface GroupContextType {
   selectedGroup: GolfGroup | null;

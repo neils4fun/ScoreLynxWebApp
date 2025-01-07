@@ -1,4 +1,4 @@
-import { Game } from '../types/api';
+import { Game } from '../types/game';
 import { formatGameDate } from '../utils/dateUtils';
 import { useGame } from '../context/GameContext';
 
