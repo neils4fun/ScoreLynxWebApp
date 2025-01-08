@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { fetchScorecardPlayerList } from '../api/scorecardApi';
 import type { Player } from '../types/scorecard';
+import { ScoringScreen } from './ScoringScreen';
 
 interface ScorecardPlayerScreenProps {
   gameId: string;
@@ -13,6 +14,7 @@ export function ScorecardPlayerScreen({ gameId, scorecardId, onBack }: Scorecard
   const [players, setPlayers] = useState<Player[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isScoring, setIsScoring] = useState(false);
 
   useEffect(() => {
     async function loadPlayers() {
@@ -23,7 +25,7 @@ export function ScorecardPlayerScreen({ gameId, scorecardId, onBack }: Scorecard
         const data = await fetchScorecardPlayerList(gameId, scorecardId);
         setPlayers(data.players);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load players');
+        setError(err instanceof Error ? err.message : 'Failed to load data');
       } finally {
         setIsLoading(false);
       }
@@ -32,8 +34,18 @@ export function ScorecardPlayerScreen({ gameId, scorecardId, onBack }: Scorecard
     loadPlayers();
   }, [gameId, scorecardId]);
 
+  if (isScoring) {
+    return (
+      <ScoringScreen 
+        onBack={() => setIsScoring(false)} 
+        gameId={gameId} 
+        scorecardId={scorecardId}
+      />
+    );
+  }
+
   if (isLoading) {
-    return <div className="p-4 text-center">Loading players...</div>;
+    return <div className="p-4 text-center">Loading scorecard data...</div>;
   }
 
   if (error) {
@@ -49,7 +61,7 @@ export function ScorecardPlayerScreen({ gameId, scorecardId, onBack }: Scorecard
         >
           <ArrowLeft className="w-6 h-6" />
         </button>
-        <h2 className="text-2xl font-bold text-gray-900">Players</h2>
+        <h2 className="text-2xl font-bold text-gray-900">Scorecard</h2>
       </div>
 
       <div className="space-y-4">
@@ -72,6 +84,7 @@ export function ScorecardPlayerScreen({ gameId, scorecardId, onBack }: Scorecard
 
       <div className="mt-6">
         <button 
+          onClick={() => setIsScoring(true)}
           className="w-full py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700"
         >
           Start Scoring
