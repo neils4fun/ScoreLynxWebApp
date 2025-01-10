@@ -99,29 +99,64 @@ export async function fetchCourse(courseId: string): Promise<CourseResponse> {
   }
 }
 
-interface ScoreUpdate {
+interface AddHoleScoreRequest {
   playerID: string;
-  holeNumber: number;
-  grossScore: number;
+  gameID: string;
+  gameHole: number;
+  score: number;
+  source?: string;
+  junkIDs?: number[];
+  appVersion?: string;
+  deviceID?: string;
+}
+
+interface AddHoleScoreResponse {
+  status: {
+    code: number;
+    message: string;
+  };
+  scoreID: string;
+  playerID: string;
+  gameID: string;
+  gameHole: number;
+  score: number;
+  net: number;
 }
 
 export async function updateScore(
-  gameId: string, 
-  scorecardId: string, 
-  scoreUpdate: ScoreUpdate
-): Promise<void> {
-  const response = await fetch(
-    `/api/games/${gameId}/scorecards/${scorecardId}/scores`, 
-    {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(scoreUpdate),
-    }
-  );
+  gameId: string,
+  playerId: string,
+  holeNumber: number,
+  grossScore: number
+): Promise<AddHoleScoreResponse> {
+  const payload: AddHoleScoreRequest = {
+    playerID: playerId,
+    gameID: gameId,
+    gameHole: holeNumber,
+    score: grossScore,
+    source: "SLP",
+    junkIDs: [],
+    appVersion: "1.2.0 (0.0.1)",
+    deviceID: "arm64"
+  };
+
+  const response = await fetch(`${API_BASE}/addHoleScore`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload)
+  });
 
   if (!response.ok) {
-    throw new Error('Failed to update score');
+    throw new Error(`HTTP error! status: ${response.status}`);
   }
+
+  const data = await response.json() as AddHoleScoreResponse;
+  
+  if (data.status.code !== 0) {
+    throw new Error(data.status.message);
+  }
+
+  return data;
 }

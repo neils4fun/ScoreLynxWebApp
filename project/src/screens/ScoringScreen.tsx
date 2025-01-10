@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft } from 'lucide-react';
-import { fetchScorecardPlayerList, fetchCourse } from '../api/scorecardApi';
+import { ArrowLeft, RotateCw } from 'lucide-react';
+import { fetchScorecardPlayerList, fetchCourse, updateScore } from '../api/scorecardApi';
 import { useGame } from '../context/GameContext';
 import type { Player } from '../types/scorecard';
 import type { Hole } from '../types/course';
@@ -19,41 +19,44 @@ export function ScoringScreen({ onBack, gameId, scorecardId }: ScoringScreenProp
   const [error, setError] = useState<string | null>(null);
   const [updatingScores, setUpdatingScores] = useState<Set<string>>(new Set());
 
-  useEffect(() => {
-    async function loadData() {
-      if (!selectedGame?.courseID) {
-        setError('No course selected');
-        return;
-      }
-
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        const [playerData, courseData] = await Promise.all([
-          fetchScorecardPlayerList(gameId, scorecardId),
-          fetchCourse(selectedGame.courseID)
-        ]);
-
-        setPlayers(playerData.players);
-        setHoles(courseData.course.tees[0].holes);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load data');
-      } finally {
-        setIsLoading(false);
-      }
+  const loadData = async () => {
+    if (!selectedGame?.courseID) {
+      setError('No course selected');
+      return;
     }
 
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const [playerData, courseData] = await Promise.all([
+        fetchScorecardPlayerList(gameId, scorecardId),
+        fetchCourse(selectedGame.courseID)
+      ]);
+
+      setPlayers(playerData.players);
+      setHoles(courseData.course.tees[0].holes);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load data');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
     loadData();
   }, [gameId, scorecardId, selectedGame?.courseID]);
 
-  const handleScoreChange = (playerId: string, holeNumber: number, newScore: number) => {
+  const handleScoreChange = async (playerId: string, holeNumber: number, newScore: number) => {
     const scoreKey = `${playerId}-${holeNumber}`;
     
     try {
       setUpdatingScores(prev => new Set(prev).add(scoreKey));
       
-      // Update local state
+      // Make the API call and get the response with net score
+      const scoreResponse = await updateScore(gameId, playerId, holeNumber, newScore);
+
+      // Update local state with both gross and net scores
       setPlayers(currentPlayers => 
         currentPlayers.map(player => {
           if (player.playerID !== playerId) return player;
@@ -62,11 +65,17 @@ export function ScoringScreen({ onBack, gameId, scorecardId }: ScoringScreenProp
             ...player,
             scores: player.scores.map(score => {
               if (score.holeNumber !== holeNumber) return score;
-              return { ...score, grossScore: newScore };
+              return { 
+                ...score, 
+                grossScore: scoreResponse.score,
+                netScore: scoreResponse.net 
+              };
             })
           };
         })
       );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update score');
     } finally {
       setUpdatingScores(prev => {
         const next = new Set(prev);
@@ -121,14 +130,25 @@ export function ScoringScreen({ onBack, gameId, scorecardId }: ScoringScreenProp
 
   return (
     <div className="p-4">
-      <div className="flex items-center mb-6">
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center">
+          <button
+            onClick={onBack}
+            className="mr-4 p-2 hover:bg-gray-100 rounded-full"
+          >
+            <ArrowLeft className="w-6 h-6" />
+          </button>
+          <h2 className="text-2xl font-bold text-gray-900">Enter Scores</h2>
+        </div>
         <button
-          onClick={onBack}
-          className="mr-4 p-2 hover:bg-gray-100 rounded-full"
+          onClick={loadData}
+          disabled={isLoading}
+          className={`p-2 hover:bg-gray-100 rounded-full
+            ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}
+            transition-transform active:scale-95`}
         >
-          <ArrowLeft className="w-6 h-6" />
+          <RotateCw className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
         </button>
-        <h2 className="text-2xl font-bold text-gray-900">Enter Scores</h2>
       </div>
 
       <div className="overflow-x-auto">
