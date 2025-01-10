@@ -86,8 +86,8 @@ export function ScoringScreen({ onBack, gameId, scorecardId }: ScoringScreenProp
                 </div>
               </th>
               {players.map((player) => (
-                <th key={player.playerID} className="px-2 py-1 text-xs font-medium text-gray-500 tracking-wider width: 20px">
-                  <div className="flex items-end justify-end pr-6 pb-4">
+                <th key={player.playerID} className="px-1 py-1 text-xs font-medium text-gray-500 tracking-wider width: 16px">
+                  <div className="flex items-end justify-end pr-4 pb-4">
                     <span className="transform -rotate-90">
                       {player.firstName}<br />{player.lastName}
                     </span>
@@ -100,7 +100,7 @@ export function ScoringScreen({ onBack, gameId, scorecardId }: ScoringScreenProp
                 HDCP
               </th>
               {players.map((player) => (
-                <th key={player.playerID} className="px-2 py-2 text-xs font-medium text-gray-500 tracking-wider text-center">
+                <th key={player.playerID} className="px-1 py-1 text-xs font-medium text-gray-500 tracking-wider text-center">
                   {player.handicap}
                 </th>
               ))}
@@ -115,16 +115,16 @@ export function ScoringScreen({ onBack, gameId, scorecardId }: ScoringScreenProp
                 {players.map((player) => {
                   const score = player.scores.find(s => s.holeNumber === hole.number);
                   return (
-                    <td key={player.playerID} className="px-2 py-2 text-sm">
-                      <div className="flex space-x-2">
+                    <td key={player.playerID} className="px-1 py-1 text-sm">
+                      <div className="flex space-x-1">
                         <input
                           type="number"
                           value={score?.grossScore || ''}
-                          onChange={() => { }} // TODO: Implement score updating
-                          className="w-12 px-0 py-1 border rounded text-right"
+                          onChange={() => { }}
+                          className="w-8 px-0 py-1 border rounded text-right"
                           placeholder="Gross"
                         />
-                        <div className="px-9 py-1 text-right text-sm text-gray-900">{score?.netScore || ''}</div>
+                        <div className="w-8 py-1 text-right text-sm text-gray-900">{score?.netScore || ''}</div>
                       </div>
                     </td>
                   );
@@ -135,10 +135,10 @@ export function ScoringScreen({ onBack, gameId, scorecardId }: ScoringScreenProp
             <tr className="divide-x divide-gray-200 bg-gray-100">
               <td className="px-2 py-2 text-right text-sm font-bold" colSpan={3}>Out</td>
               {players.map((player) => (
-                <td key={player.playerID} className="px-2 py-2 text-sm">
-                  <div className="flex space-x-2">
-                    <div className="px-4 py-1 text-right text-sm text-gray-900">{player.scores.slice(0, 9).reduce((sum, score) => sum + (score?.grossScore || 0), 0)}</div>
-                    <div className="px-7 py-1 text-right text-sm text-gray-900">{player.scores.slice(0, 9).reduce((sum, score) => sum + (score?.netScore || 0), 0)}</div>
+                <td key={player.playerID} className="px-1 py-1 text-sm">
+                  <div className="flex space-x-1">
+                    <div className="w-8 py-1 text-right text-sm text-gray-900">{player.scores.slice(0, 9).reduce((sum, score) => sum + (score?.grossScore || 0), 0)}</div>
+                    <div className="w-8 py-1 text-right text-sm text-gray-900">{player.scores.slice(0, 9).reduce((sum, score) => sum + (score?.netScore || 0), 0)}</div>
                   </div>
                 </td>
               ))}
@@ -151,16 +151,16 @@ export function ScoringScreen({ onBack, gameId, scorecardId }: ScoringScreenProp
                 {players.map((player) => {
                   const score = player.scores.find(s => s.holeNumber === hole.number);
                   return (
-                    <td key={player.playerID} className="px-2 py-2 text-sm">
-                      <div className="flex space-x-2">
+                    <td key={player.playerID} className="px-1 py-1 text-sm">
+                      <div className="flex space-x-1">
                         <input
                           type="number"
                           value={score?.grossScore || ''}
-                          onChange={() => { }} // TODO: Implement score updating
-                          className="w-12 px-0 py-1 border rounded text-right"
+                          onChange={() => { }}
+                          className="w-8 px-0 py-1 border rounded text-right"
                           placeholder="Gross"
                         />
-                        <div className="px-9 py-1 text-right text-sm text-gray-900">{score?.netScore || ''}</div>
+                        <div className="w-8 py-1 text-right text-sm text-gray-900">{score?.netScore || ''}</div>
                       </div>
                     </td>
                   );
@@ -171,10 +171,10 @@ export function ScoringScreen({ onBack, gameId, scorecardId }: ScoringScreenProp
             <tr className="divide-x divide-gray-200 bg-gray-100">
               <td className="px-2 py-2 text-right text-sm font-bold" colSpan={3}>In</td>
               {players.map((player) => (
-                <td key={player.playerID} className="px-2 py-2 text-sm">
-                  <div className="flex space-x-2">
-                    <div className="px-5 py-1 text-right text-sm text-gray-900">{player.scores.slice(9).reduce((sum, score) => sum + (score?.grossScore || 0), 0)}</div>
-                    <div className="px-5 py-1 text-right text-sm text-gray-900">{player.scores.slice(9).reduce((sum, score) => sum + (score?.netScore || 0), 0)}</div>
+                <td key={player.playerID} className="px-1 py-1 text-sm">
+                  <div className="flex space-x-1">
+                    <div className="w-8 py-1 text-right text-sm text-gray-900">{player.scores.slice(9).reduce((sum, score) => sum + (score?.grossScore || 0), 0)}</div>
+                    <div className="w-8 py-1 text-right text-sm text-gray-900">{player.scores.slice(9).reduce((sum, score) => sum + (score?.netScore || 0), 0)}</div>
                   </div>
                 </td>
               ))}
@@ -183,10 +183,10 @@ export function ScoringScreen({ onBack, gameId, scorecardId }: ScoringScreenProp
             <tr className="divide-x divide-gray-200 bg-gray-100">
               <td className="px-2 py-2 text-right text-sm font-bold" colSpan={3}>Total</td>
               {players.map((player) => (
-                <td key={player.playerID} className="px-2 py-2 text-sm">
-                  <div className="flex space-x-2">
-                    <div className="px-5 py-1 text-right text-sm text-gray-900">{player.scores.reduce((sum, score) => sum + (score?.grossScore || 0), 0)}</div>
-                    <div className="px-5 py-1 text-right text-sm text-gray-900">{player.scores.reduce((sum, score) => sum + (score?.netScore || 0), 0)}</div>
+                <td key={player.playerID} className="px-1 py-1 text-sm">
+                  <div className="flex space-x-1">
+                    <div className="w-8 py-1 text-right text-sm text-gray-900">{player.scores.reduce((sum, score) => sum + (score?.grossScore || 0), 0)}</div>
+                    <div className="w-8 py-1 text-right text-sm text-gray-900">{player.scores.reduce((sum, score) => sum + (score?.netScore || 0), 0)}</div>
                   </div>
                 </td>
               ))}
