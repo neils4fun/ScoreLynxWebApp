@@ -98,3 +98,30 @@ export async function fetchCourse(courseId: string): Promise<CourseResponse> {
     throw error;
   }
 }
+
+interface ScoreUpdate {
+  playerID: string;
+  holeNumber: number;
+  grossScore: number;
+}
+
+export async function updateScore(
+  gameId: string, 
+  scorecardId: string, 
+  scoreUpdate: ScoreUpdate
+): Promise<void> {
+  const response = await fetch(
+    `/api/games/${gameId}/scorecards/${scorecardId}/scores`, 
+    {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(scoreUpdate),
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to update score');
+  }
+}
