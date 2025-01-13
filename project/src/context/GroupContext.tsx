@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { GolfGroup, Game } from '../types/game';
 
 interface GroupContextType {
@@ -10,15 +10,49 @@ interface GroupContextType {
   setSearchTerm: (term: string) => void;
   searchResults: GolfGroup[];
   setSearchResults: (groups: GolfGroup[]) => void;
+  clearGroup: () => void;
 }
 
 const GroupContext = createContext<GroupContextType | undefined>(undefined);
 
 export function GroupProvider({ children }: { children: ReactNode }) {
-  const [selectedGroup, setSelectedGroup] = useState<GolfGroup | null>(null);
-  const [games, setGames] = useState<Game[]>([]);
+  const [selectedGroup, setSelectedGroup] = useState<GolfGroup | null>(() => {
+    const saved = localStorage.getItem('selectedGroup');
+    return saved ? JSON.parse(saved) : null;
+  });
+  
+  const [games, setGames] = useState<Game[]>(() => {
+    const saved = localStorage.getItem('groupGames');
+    return saved ? JSON.parse(saved) : [];
+  });
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<GolfGroup[]>([]);
+
+  useEffect(() => {
+    if (selectedGroup) {
+      localStorage.setItem('selectedGroup', JSON.stringify(selectedGroup));
+    } else {
+      localStorage.removeItem('selectedGroup');
+    }
+  }, [selectedGroup]);
+
+  useEffect(() => {
+    if (games.length > 0) {
+      localStorage.setItem('groupGames', JSON.stringify(games));
+    } else {
+      localStorage.removeItem('groupGames');
+    }
+  }, [games]);
+
+  const clearGroup = () => {
+    setSelectedGroup(null);
+    setGames([]);
+    setSearchResults([]);
+    setSearchTerm('');
+    localStorage.removeItem('selectedGroup');
+    localStorage.removeItem('groupGames');
+  };
 
   return (
     <GroupContext.Provider value={{ 
@@ -29,7 +63,8 @@ export function GroupProvider({ children }: { children: ReactNode }) {
       searchTerm,
       setSearchTerm,
       searchResults,
-      setSearchResults
+      setSearchResults,
+      clearGroup
     }}>
       {children}
     </GroupContext.Provider>

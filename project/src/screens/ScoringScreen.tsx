@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { ArrowLeft, RotateCw } from 'lucide-react';
 import { fetchScorecardPlayerList, fetchCourse, updateScore } from '../api/scorecardApi';
 import { useGame } from '../context/GameContext';
-import type { Player } from '../types/scorecard';
+import type { Player, Score } from '../types/scorecard';
 import type { Hole } from '../types/course';
+import { useScorecard } from '../context/ScorecardContext';
 
 interface ScoringScreenProps {
   onBack: () => void;
@@ -13,7 +14,7 @@ interface ScoringScreenProps {
 
 export function ScoringScreen({ onBack, gameId, scorecardId }: ScoringScreenProps) {
   const { selectedGame } = useGame();
-  const [players, setPlayers] = useState<Player[]>([]);
+  const { players, setPlayers } = useScorecard();
   const [holes, setHoles] = useState<Hole[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -57,20 +58,34 @@ export function ScoringScreen({ onBack, gameId, scorecardId }: ScoringScreenProp
       const scoreResponse = await updateScore(gameId, playerId, holeNumber, newScore);
 
       // Update local state with both gross and net scores
-      setPlayers(currentPlayers => 
-        currentPlayers.map(player => {
+      setPlayers(prevPlayers => 
+        prevPlayers.map(player => {
           if (player.playerID !== playerId) return player;
           
+          const newScores = player.scores.some(s => s.holeNumber === holeNumber)
+            ? player.scores.map(score => {
+                if (score.holeNumber !== holeNumber) return score;
+                return { 
+                  ...score, 
+                  grossScore: scoreResponse.score,
+                  netScore: scoreResponse.net 
+                };
+              })
+            : [
+                ...player.scores,
+                {
+                  holeNumber,
+                  grossScore: scoreResponse.score,
+                  netScore: scoreResponse.net,
+                  scoreID: scoreResponse.scoreID,
+                  playerID: playerId,
+                  gameID: gameId
+                } as Score
+              ];
+
           return {
             ...player,
-            scores: player.scores.map(score => {
-              if (score.holeNumber !== holeNumber) return score;
-              return { 
-                ...score, 
-                grossScore: scoreResponse.score,
-                netScore: scoreResponse.net 
-              };
-            })
+            scores: newScores
           };
         })
       );
@@ -103,8 +118,10 @@ export function ScoringScreen({ onBack, gameId, scorecardId }: ScoringScreenProp
           const value = e.target.value;
           // Allow empty string or positive integers only
           if (value === '' || /^[1-9]\d*$/.test(value)) {
-            const newScore = value === '' ? 0 : parseInt(value, 10);
-            handleScoreChange(player.playerID, holeNumber, newScore);
+            if (value !== '') {  // Only process non-empty values
+              const newScore = parseInt(value, 10);
+              handleScoreChange(player.playerID, holeNumber, newScore);
+            }
           }
         }}
         disabled={isUpdating}
@@ -115,7 +132,7 @@ export function ScoringScreen({ onBack, gameId, scorecardId }: ScoringScreenProp
           [appearance:textfield]
           [&::-webkit-outer-spin-button]:appearance-none
           [&::-webkit-inner-spin-button]:appearance-none`}
-        placeholder="Gross"
+        placeholder=""
       />
     );
   };

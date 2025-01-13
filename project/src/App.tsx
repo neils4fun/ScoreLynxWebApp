@@ -1,13 +1,20 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { TabBar } from './components/navigation/TabBar';
 import GamesScreen from './screens/GamesScreen';
 import { ScorecardScreen } from './screens/ScorecardScreen';
 import LeaderboardScreen from './screens/LeaderboardScreen';
 import { GameProvider } from './context/GameContext';
 import { GroupProvider } from './context/GroupContext';
+import { ScorecardProvider } from './context/ScorecardContext';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('games');
+  const [activeTab, setActiveTab] = useState(() => {
+    return localStorage.getItem('activeTab') || 'games';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('activeTab', activeTab);
+  }, [activeTab]);
 
   const renderScreen = () => {
     switch (activeTab) {
@@ -25,12 +32,14 @@ export default function App() {
   return (
     <GroupProvider>
       <GameProvider>
-        <div className="min-h-screen bg-gray-50 pb-16">
-          <div className="max-w-2xl mx-auto">
-            {renderScreen()}
+        <ScorecardProvider>
+          <div className="min-h-screen bg-gray-50 pb-16">
+            <div className="max-w-2xl mx-auto">
+              {renderScreen()}
+            </div>
+            <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
           </div>
-          <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
-        </div>
+        </ScorecardProvider>
       </GameProvider>
     </GroupProvider>
   );
