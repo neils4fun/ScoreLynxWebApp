@@ -4,10 +4,11 @@ interface SkinsLeaderboardProps {
   skins: Skin[];
   isLoading: boolean;
   error: string | null;
-  gameType?: string;
+  gameType: string;
+  onSkinSelect?: (holeNumber: number, type: 'Net' | 'Gross') => void;
 }
 
-export function SkinsLeaderboard({ skins, isLoading, error, gameType }: SkinsLeaderboardProps) {
+export function SkinsLeaderboard({ skins, isLoading, error, gameType, onSkinSelect }: SkinsLeaderboardProps) {
   if (isLoading) {
     return <div className="text-center py-8">Loading skins data...</div>;
   }
@@ -38,8 +39,12 @@ export function SkinsLeaderboard({ skins, isLoading, error, gameType }: SkinsLea
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {skins.map((skin, index) => (
-              <tr key={`${skin.holeNumber}-${index}`} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+            {skins.map((skin) => (
+              <tr 
+                key={`${skin.holeNumber}-${skin.type}`}
+                onClick={() => onSkinSelect?.(skin.holeNumber, skin.type as 'Net' | 'Gross')}
+                className="cursor-pointer hover:bg-gray-50"
+              >
                 <td className="px-2 py-2 text-sm text-gray-900">{skin.holeNumber}</td>
                 <td className="px-2 py-2 text-sm text-gray-900">
                   {skin.playerID === -1 ? 'Cut' : `${skin.firstName} ${skin.lastName}`.trim()}

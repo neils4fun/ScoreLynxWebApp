@@ -1,17 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useGame } from '../context/GameContext';
-import { 
-  fetchMatchplayLeaderboard,
-  fetchPlayerLeaderboard,
-  fetchTeamLeaderboard,
-  fetchSkins,
-  fetchPayouts
-} from '../api/leaderboardApi';
 import { MatchplayLeaderboard } from '../components/leaderboard/MatchplayLeaderboard';
-import { PlayerLeaderboard } from '../components/leaderboard/PlayerLeaderboard';
 import { TeamLeaderboard } from '../components/leaderboard/TeamLeaderboard';
+import { PlayerLeaderboard } from '../components/leaderboard/PlayerLeaderboard';
 import { SkinsLeaderboard } from '../components/leaderboard/SkinsLeaderboard';
 import { PayoutsLeaderboard } from '../components/leaderboard/PayoutsLeaderboard';
+import { SkinsDetailScreen } from './SkinsDetailScreen';
 import type { 
   MatchplayLeader,
   PlayerLeader,
@@ -19,19 +13,31 @@ import type {
   Skin,
   Payout
 } from '../types/leaderboard';
+import { 
+  fetchMatchplayLeaderboard,
+  fetchTeamLeaderboard,
+  fetchPlayerLeaderboard,
+  fetchSkins,
+  fetchPayouts
+} from '../api/leaderboardApi';
+
+interface SelectedSkin {
+  holeNumber: number;
+  type: 'Net' | 'Gross';
+}
 
 export default function LeaderboardScreen() {
-  const [activeTab, setActiveTab] = useState('team');
   const { selectedGame } = useGame();
+  const [activeTab, setActiveTab] = useState('team');
+  const [selectedSkin, setSelectedSkin] = useState<SelectedSkin | null>(null);
   const [matchplayData, setMatchplayData] = useState<MatchplayLeader[]>([]);
   const [playerData, setPlayerData] = useState<PlayerLeader[]>([]);
   const [teamData, setTeamData] = useState<TeamLeader[]>([]);
   const [skinsData, setSkinsData] = useState<Skin[]>([]);
   const [payoutsData, setPayoutsData] = useState<Payout[]>([]);
-  const [gameType, setGameType] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   const getLeaderboardTabs = () => {
     const isMatchplay = selectedGame?.teamPlayerType === 'Matchplay';
     return [
@@ -59,32 +65,27 @@ export default function LeaderboardScreen() {
             const data = await fetchMatchplayLeaderboard(selectedGame.gameID);
             if (!signal.aborted) {
               setMatchplayData(data.leaders.flat());
-              setGameType(data.gameTypes[0] || '');
             }
           } else {
             const data = await fetchTeamLeaderboard(selectedGame.gameID);
             if (!signal.aborted) {
               setTeamData(data.leaders.flat());
-              setGameType(data.gameTypes[0] || '');
             }
           }
         } else if (activeTab === 'player') {
           const data = await fetchPlayerLeaderboard(selectedGame.gameID);
           if (!signal.aborted) {
             setPlayerData(data.leaders.flat());
-            setGameType(data.gameTypes[0] || '');
           }
         } else if (activeTab === 'skins') {
           const data = await fetchSkins(selectedGame.gameID);
           if (!signal.aborted) {
             setSkinsData(data.skins.flat());
-            setGameType(data.gameTypes[0] || '');
           }
         } else if (activeTab === 'payouts') {
           const data = await fetchPayouts(selectedGame.gameID);
           if (!signal.aborted) {
             setPayoutsData(data.payouts.flat());
-            setGameType(data.gameTypes[0] || '');
           }
         }
       } catch (err) {
@@ -117,7 +118,6 @@ export default function LeaderboardScreen() {
             leaders={matchplayData}
             isLoading={isLoading}
             error={error}
-            gameType={gameType}
           />
         );
       }
@@ -126,7 +126,6 @@ export default function LeaderboardScreen() {
           leaders={teamData}
           isLoading={isLoading}
           error={error}
-          gameType={gameType}
         />
       );
     }
@@ -137,7 +136,6 @@ export default function LeaderboardScreen() {
           leaders={playerData}
           isLoading={isLoading}
           error={error}
-          gameType={gameType}
         />
       );
     }
@@ -148,7 +146,10 @@ export default function LeaderboardScreen() {
           skins={skinsData}
           isLoading={isLoading}
           error={error}
-          gameType={gameType}
+          gameType={selectedGame.gameType}
+          onSkinSelect={(holeNumber, type) => {
+            setSelectedSkin({ holeNumber, type });
+          }}
         />
       );
     }
@@ -159,7 +160,6 @@ export default function LeaderboardScreen() {
           payouts={payoutsData}
           isLoading={isLoading}
           error={error}
-          gameType={gameType}
         />
       );
     }
@@ -167,31 +167,42 @@ export default function LeaderboardScreen() {
     return null;
   };
 
+  if (selectedSkin && selectedGame) {
+    return (
+      <SkinsDetailScreen
+        gameId={selectedGame.gameID}
+        holeNumber={selectedSkin.holeNumber}
+        skinsType={selectedSkin.type}
+        onBack={() => setSelectedSkin(null)}
+      />
+    );
+  }
+
   return (
     <div className="p-4">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Leaderboard</h2>
-      
-      <div className="border-b border-gray-200">
-        <nav className="-mb-px flex justify-between">
-          {getLeaderboardTabs().map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`
-                py-2 px-2 border-b-2 font-medium text-xs sm:text-sm
-                ${activeTab === tab.id
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}
-              `}
-            >
-              {tab.label}
-            </button>
-          ))}
+      <div className="flex flex-col space-y-4">
+        <h2 className="text-2xl font-bold text-gray-900">Leaderboard</h2>
+        <nav className="border-b border-gray-200">
+          <div className="-mb-px flex justify-between">
+            {getLeaderboardTabs().map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`
+                  py-2 px-2 border-b-2 font-medium text-xs sm:text-sm
+                  ${activeTab === tab.id
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}
+                `}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
         </nav>
-      </div>
-
-      <div className="mt-6">
-        {renderLeaderboard()}
+        <div className="mt-4">
+          {renderLeaderboard()}
+        </div>
       </div>
     </div>
   );

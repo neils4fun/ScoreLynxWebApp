@@ -7,6 +7,34 @@ import {
   PayoutsResponse 
 } from '../types/leaderboard';
 
+interface SkinsDetailRequest {
+  gameID: string;
+  gameHole: number;
+  skinsType: 'Net' | 'Gross';
+  appVersion?: string;
+  deviceID?: string;
+  source?: string;
+}
+
+export interface SkinPlayer {
+  gameID: string;
+  type: 'Net' | 'Gross';
+  gross: number;
+  score: string;
+  holeNumber: number;
+  playerID: string;
+  firstName: string;
+  lastName: string;
+}
+
+interface SkinsDetailResponse {
+  status: {
+    code: number;
+    message: string;
+  };
+  skins: SkinPlayer[];
+}
+
 export async function fetchMatchplayLeaderboard(gameId: string): Promise<MatchplayResponse> {
   try {
     const response = await fetch(`${API_BASE}/getMatchplayLeaderboard`, {
@@ -150,4 +178,31 @@ export async function fetchPayouts(gameId: string): Promise<PayoutsResponse> {
     console.error('Error fetching payouts:', error);
     throw error;
   }
+}
+
+export async function fetchSkinsDetail(params: SkinsDetailRequest): Promise<SkinsDetailResponse> {
+  const response = await fetch(`${API_BASE}/getSkinsDetail`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      ...params,
+      appVersion: "1.2.0 (0.0.2)",
+      deviceID: "arm64",
+      source: "SLP"
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+
+  const data = await response.json() as SkinsDetailResponse;
+  
+  if (data.status.code !== 0) {
+    throw new Error(data.status.message);
+  }
+
+  return data;
 }
