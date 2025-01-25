@@ -160,3 +160,52 @@ export async function updateScore(
 
   return data;
 }
+
+interface AddScorecardRequest {
+  name: string;
+  gameID: string;
+  source?: string;
+  deviceID?: string;
+  appVersion?: string;
+}
+
+interface AddScorecardResponse {
+  status: {
+    code: number;
+    message: string;
+  };
+  scorecard: {
+    scorecardID: string;
+    name: string;
+  };
+}
+
+export async function addScorecard(name: string, gameId: string): Promise<AddScorecardResponse> {
+  const payload: AddScorecardRequest = {
+    name,
+    gameID: gameId,
+    source: "SLP",
+    deviceID: "arm64",
+    appVersion: "1.2.0 (0.0.2)"
+  };
+
+  const response = await fetch(`${API_BASE}/addScorecard`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload)
+  });
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+
+  const data = await response.json() as AddScorecardResponse;
+  
+  if (data.status.code !== 0) {
+    throw new Error(data.status.message);
+  }
+
+  return data;
+}
