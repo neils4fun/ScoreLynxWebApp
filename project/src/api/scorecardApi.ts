@@ -1,4 +1,4 @@
-import { API_BASE } from './config';
+import { API_BASE, APP_VERSION, APP_SOURCE, DEVICE_ID } from './config';
 import { ScorecardListResponse, ScorecardPlayerListResponse } from '../types/scorecard';
 import { CourseResponse } from '../types/course';
 
@@ -10,9 +10,9 @@ export async function fetchScorecardList(gameId: string): Promise<ScorecardListR
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        source: "SLP",
-        appVersion: "1.2.0 (0.0.1)",
-        deviceID: "arm64",
+        source: APP_SOURCE,
+        appVersion: APP_VERSION,
+        deviceID: DEVICE_ID,
         gameID: gameId
       }),
     });
@@ -42,11 +42,11 @@ export async function fetchScorecardPlayerList(gameId: string, scorecardId: stri
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        deviceID: "arm64",
+        deviceID: DEVICE_ID,
         gameID: gameId,
         scorecardID: scorecardId,
-        appVersion: "1.2.0 (0.0.1)",
-        source: "SLP"
+        appVersion: APP_VERSION,
+        source: APP_SOURCE
       }),
     });
 
@@ -75,9 +75,9 @@ export async function fetchCourse(courseId: string): Promise<CourseResponse> {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        source: "SLP",
-        appVersion: "1.2.0 (0.0.1)",
-        deviceID: "arm64",
+        source: APP_SOURCE,
+        appVersion: APP_VERSION,
+        deviceID: DEVICE_ID,
         courseID: courseId
       }),
     });
@@ -134,10 +134,10 @@ export async function updateScore(
     gameID: gameId,
     gameHole: holeNumber,
     score: grossScore,
-    source: "SLP",
+    source: APP_SOURCE,
     junkIDs: [],
-    appVersion: "1.2.0 (0.0.1)",
-    deviceID: "arm64"
+    appVersion: APP_VERSION,
+    deviceID: DEVICE_ID
   };
 
   const response = await fetch(`${API_BASE}/addHoleScore`, {
@@ -184,9 +184,9 @@ export async function addScorecard(name: string, gameId: string): Promise<AddSco
   const payload: AddScorecardRequest = {
     name,
     gameID: gameId,
-    source: "SLP",
-    deviceID: "arm64",
-    appVersion: "1.2.0 (0.0.2)"
+    source: APP_SOURCE,
+    deviceID: DEVICE_ID,
+    appVersion: APP_VERSION
   };
 
   const response = await fetch(`${API_BASE}/addScorecard`, {

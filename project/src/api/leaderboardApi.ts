@@ -1,4 +1,4 @@
-import { API_BASE } from './config';
+import { API_BASE, APP_VERSION, APP_SOURCE, DEVICE_ID } from './config';
 import { 
   MatchplayResponse, 
   TeamLeaderboardResponse, 
@@ -42,7 +42,12 @@ export async function fetchMatchplayLeaderboard(gameId: string): Promise<Matchpl
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ gameID: gameId }),
+      body: JSON.stringify({ 
+        gameID: gameId,
+        source: APP_SOURCE,
+        appVersion: APP_VERSION,
+        deviceID: DEVICE_ID
+      }),
     });
 
     if (!response.ok) {
@@ -69,7 +74,12 @@ export async function fetchTeamLeaderboard(gameId: string): Promise<TeamLeaderbo
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ gameID: gameId }),
+      body: JSON.stringify({ 
+        gameID: gameId,
+        source: APP_SOURCE,
+        appVersion: APP_VERSION,
+        deviceID: DEVICE_ID
+      }),
     });
 
     if (!response.ok) {
@@ -96,7 +106,12 @@ export async function fetchPlayerLeaderboard(gameId: string): Promise<PlayerLead
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ gameID: gameId }),
+      body: JSON.stringify({ 
+        gameID: gameId,
+        source: APP_SOURCE,
+        appVersion: APP_VERSION,
+        deviceID: DEVICE_ID
+      }),
     });
 
     if (!response.ok) {
@@ -124,10 +139,10 @@ export async function fetchSkins(gameId: string): Promise<SkinsResponse> {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        appVersion: "1.2.0 (0.0.1)",
-        source: "SLP",
+        appVersion: APP_VERSION,
+        source: APP_SOURCE,
         gameID: gameId,
-        deviceID: "arm64"
+        deviceID: DEVICE_ID
       }),
     });
 
@@ -157,9 +172,9 @@ export async function fetchPayouts(gameId: string): Promise<PayoutsResponse> {
       },
       body: JSON.stringify({
         gameID: gameId,
-        deviceID: "arm64",
-        appVersion: "1.2.0 (0.0.1)",
-        source: "SLP"
+        deviceID: DEVICE_ID,
+        appVersion: APP_VERSION,
+        source: APP_SOURCE
       }),
     });
 
@@ -188,9 +203,9 @@ export async function fetchSkinsDetail(params: SkinsDetailRequest): Promise<Skin
     },
     body: JSON.stringify({
       ...params,
-      appVersion: "1.2.0 (0.0.2)",
-      deviceID: "arm64",
-      source: "SLP"
+      appVersion: APP_VERSION,
+      deviceID: DEVICE_ID,
+      source: APP_SOURCE
     }),
   });
 

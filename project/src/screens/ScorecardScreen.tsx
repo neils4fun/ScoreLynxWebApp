@@ -156,28 +156,28 @@ export function ScorecardScreen() {
   if (scorecardId && !isScoring) {
     return (
       <div className="p-4">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">Scorecard Players</h2>
-          <div className="flex items-center space-x-4">
-            <button
-              onClick={loadScorecards}
-              disabled={isRefreshing}
-              className={`p-2 hover:bg-gray-100 rounded-full
-                ${isRefreshing ? 'opacity-50 cursor-not-allowed' : ''}
-                transition-transform active:scale-95`}
-            >
-              <RotateCw className={`w-5 h-5 ${isRefreshing ? 'animate-spin' : ''}`} />
-            </button>
+        <div className="max-w-sm mx-auto">
+          <div className="flex items-center mb-6">
             <button
               onClick={() => setCurrentScorecard(null)}
-              className="px-4 py-2 text-gray-600 hover:text-gray-900"
+              className="mr-4 p-2 hover:bg-gray-100 rounded-full"
             >
-              Back
+              <ArrowLeft className="w-6 h-6" />
             </button>
+            <h2 className="text-2xl font-bold text-gray-900">Scorecard Players</h2>
+            <div className="flex-1 flex justify-end">
+              <button
+                onClick={loadScorecards}
+                disabled={isRefreshing}
+                className={`p-2 hover:bg-gray-100 rounded-full
+                  ${isRefreshing ? 'opacity-50 cursor-not-allowed' : ''}
+                  transition-transform active:scale-95`}
+              >
+                <RotateCw className={`w-5 h-5 ${isRefreshing ? 'animate-spin' : ''}`} />
+              </button>
+            </div>
           </div>
-        </div>
 
-        <div className="max-w-sm mx-auto">
           {isLoading ? (
             <div className="text-center py-4">Loading players...</div>
           ) : error ? (
