@@ -3,7 +3,7 @@ import { useGame } from '../context/GameContext';
 import { useScorecard } from '../context/ScorecardContext';
 import { ScoringScreen } from './ScoringScreen';
 import { ScorecardList } from '../components/scorecard/ScorecardList';
-import { fetchScorecardList, fetchScorecardPlayerList, addScorecard } from '../api/scorecardApi';
+import { fetchScorecardList, fetchScorecardPlayerList, addScorecard, updateScorecard } from '../api/scorecardApi';
 import type { ScorecardListResponse } from '../types/scorecard';
 import { ArrowLeft, RotateCw } from 'lucide-react';
 
@@ -15,6 +15,8 @@ export function ScorecardScreen() {
   const [error, setError] = useState<string | null>(null);
   const [isScoring, setIsScoring] = useState(false);
   const [isCreatingScorecard, setIsCreatingScorecard] = useState(false);
+  const [isEditingScorecard, setIsEditingScorecard] = useState(false);
+  const [editingScorecardId, setEditingScorecardId] = useState<string | null>(null);
   const [newScorecardName, setNewScorecardName] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -77,11 +79,116 @@ export function ScorecardScreen() {
       // Refresh the scorecard list
       await loadScorecards();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create scorecard');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to create scorecard';
+      
+      // Check if the error message indicates a name conflict
+      if (errorMessage.toLowerCase().includes('name already exists') || 
+          errorMessage.toLowerCase().includes('duplicate') ||
+          errorMessage.toLowerCase().includes('already in use')) {
+        setError('A scorecard with this name already exists. Please choose a different name.');
+      } else {
+        setError('Failed to create scorecard. Please try again.');
+      }
     } finally {
       setIsCreating(false);
     }
   };
+
+  const handleUpdateScorecard = async () => {
+    if (!selectedGame || !editingScorecardId) return;
+    
+    setIsCreating(true);
+    setError(null);
+
+    try {
+      await updateScorecard(editingScorecardId, selectedGame.gameID, newScorecardName);
+      
+      // Reset form state and return to list view
+      setIsEditingScorecard(false);
+      setEditingScorecardId(null);
+      setNewScorecardName('');
+      
+      // Refresh the scorecard list
+      await loadScorecards();
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update scorecard';
+      
+      // Check if the error message indicates a name conflict
+      if (errorMessage.toLowerCase().includes('name already exists') || 
+          errorMessage.toLowerCase().includes('duplicate') ||
+          errorMessage.toLowerCase().includes('already in use')) {
+        setError('A scorecard with this name already exists. Please choose a different name.');
+      } else {
+        setError('Failed to update scorecard. Please try again.');
+      }
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const handleStartEdit = (scorecardId: string, currentName: string) => {
+    setEditingScorecardId(scorecardId);
+    setNewScorecardName(currentName);
+    setIsEditingScorecard(true);
+    setError(null);
+  };
+
+  // If we're editing a scorecard, show the edit form
+  if (isEditingScorecard) {
+    return (
+      <div className="p-4">
+        <div className="max-w-sm mx-auto">
+          <div className="flex items-center mb-6">
+            <button
+              onClick={() => {
+                setIsEditingScorecard(false);
+                setEditingScorecardId(null);
+                setNewScorecardName('');
+                setError(null);
+              }}
+              className="mr-4 p-2 hover:bg-gray-100 rounded-full"
+            >
+              <ArrowLeft className="w-6 h-6" />
+            </button>
+            <h2 className="text-2xl font-bold text-gray-900">Update Scorecard</h2>
+          </div>
+
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="scorecardName" className="block text-sm font-medium text-gray-700 mb-1">
+                  Scorecard Name
+                </label>
+                <input
+                  type="text"
+                  id="scorecardName"
+                  value={newScorecardName}
+                  onChange={(e) => setNewScorecardName(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Enter scorecard name"
+                  disabled={isCreating}
+                />
+              </div>
+              {error && (
+                <div className="text-red-600 text-sm">{error}</div>
+              )}
+              <button
+                onClick={handleUpdateScorecard}
+                disabled={!newScorecardName.trim() || isCreating}
+                className={`w-full px-4 py-2 text-white rounded-md font-medium
+                  ${newScorecardName.trim() && !isCreating
+                    ? 'bg-blue-600 hover:bg-blue-700'
+                    : 'bg-gray-400 cursor-not-allowed'}
+                `}
+              >
+                {isCreating ? 'Updating...' : 'Update Scorecard'}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // If we're creating a new scorecard, show the creation form
   if (isCreatingScorecard) {
@@ -284,6 +391,8 @@ export function ScorecardScreen() {
           onStartScoring={(id) => {
             setCurrentScorecard(id);
           }}
+          onRefresh={loadScorecards}
+          onEdit={handleStartEdit}
         />
       </div>
     </div>

@@ -209,3 +209,95 @@ export async function addScorecard(name: string, gameId: string): Promise<AddSco
 
   return data;
 }
+
+interface DeleteScorecardRequest {
+  scorecardID: string;
+  gameID: string;
+  source?: string;
+  deviceID?: string;
+  appVersion?: string;
+}
+
+interface DeleteScorecardResponse {
+  status: {
+    code: number;
+    message: string;
+  };
+}
+
+export async function deleteScorecard(scorecardId: string, gameId: string): Promise<DeleteScorecardResponse> {
+  const payload: DeleteScorecardRequest = {
+    scorecardID: scorecardId,
+    gameID: gameId,
+    source: APP_SOURCE,
+    deviceID: DEVICE_ID,
+    appVersion: APP_VERSION
+  };
+
+  const response = await fetch(`${API_BASE}/deleteScorecard`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload)
+  });
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+
+  const data = await response.json() as DeleteScorecardResponse;
+  
+  if (data.status.code !== 0) {
+    throw new Error(data.status.message);
+  }
+
+  return data;
+}
+
+interface UpdateScorecardRequest {
+  scorecardID: string;
+  gameID: string;
+  name: string;
+  source?: string;
+  deviceID?: string;
+  appVersion?: string;
+}
+
+interface UpdateScorecardResponse {
+  status: {
+    code: number;
+    message: string;
+  };
+}
+
+export async function updateScorecard(scorecardId: string, gameId: string, name: string): Promise<UpdateScorecardResponse> {
+  const payload: UpdateScorecardRequest = {
+    scorecardID: scorecardId,
+    gameID: gameId,
+    name,
+    source: APP_SOURCE,
+    deviceID: DEVICE_ID,
+    appVersion: APP_VERSION
+  };
+
+  const response = await fetch(`${API_BASE}/updateScorecard`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload)
+  });
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+
+  const data = await response.json() as UpdateScorecardResponse;
+  
+  if (data.status.code !== 0) {
+    throw new Error(data.status.message);
+  }
+
+  return data;
+}
