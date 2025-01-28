@@ -5,7 +5,11 @@ import { ScoringScreen } from './ScoringScreen';
 import { ScorecardList } from '../components/scorecard/ScorecardList';
 import { fetchScorecardList, fetchScorecardPlayerList, addScorecard, updateScorecard } from '../api/scorecardApi';
 import type { ScorecardListResponse } from '../types/scorecard';
-import { ArrowLeft, RotateCw } from 'lucide-react';
+import { ArrowLeft, RotateCw, Trash2 } from 'lucide-react';
+import { ICONS } from '../api/config';
+import { AddPlayersScreen } from './AddPlayersScreen';
+import type { Player } from '../types/player';
+import { removeScorecardPlayer } from '../api/playerApi';
 
 export function ScorecardScreen() {
   const { selectedGame } = useGame();
@@ -20,6 +24,8 @@ export function ScorecardScreen() {
   const [newScorecardName, setNewScorecardName] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isAddingPlayers, setIsAddingPlayers] = useState(false);
+  const [isDeletingPlayer, setIsDeletingPlayer] = useState(false);
 
   const loadScorecards = async () => {
     if (!selectedGame) return;
@@ -40,6 +46,22 @@ export function ScorecardScreen() {
   useEffect(() => {
     loadScorecards();
   }, [selectedGame]);
+
+  const loadPlayers = async () => {
+    if (!selectedGame || !scorecardId) return;
+
+    setIsRefreshing(true);
+    setError(null);
+
+    try {
+      const response = await fetchScorecardPlayerList(selectedGame.gameID, scorecardId);
+      setPlayers(response.players);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load players');
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   useEffect(() => {
     async function loadPlayers() {
@@ -132,6 +154,156 @@ export function ScorecardScreen() {
     setIsEditingScorecard(true);
     setError(null);
   };
+
+  const handleAddPlayers = async (selectedPlayers: Player[]) => {
+    console.log('Adding players:', selectedPlayers);
+    setIsAddingPlayers(false);
+    await loadPlayers();
+  };
+
+  const handleDeletePlayer = async (playerId: string) => {
+    if (!scorecardId || isDeletingPlayer) return;
+
+    setIsDeletingPlayer(true);
+    setError(null);
+
+    try {
+      await removeScorecardPlayer(scorecardId, playerId);
+      await loadPlayers(); // Refresh the list after successful deletion
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to remove player');
+    } finally {
+      setIsDeletingPlayer(false);
+    }
+  };
+
+  // Add useEffect to monitor state changes
+  useEffect(() => {
+    console.log('State changed:', { 
+      isAddingPlayers, 
+      hasSelectedGame: !!selectedGame, 
+      scorecardId,
+      isScoring 
+    });
+  }, [isAddingPlayers, selectedGame, scorecardId, isScoring]);
+
+  // Make sure this condition comes FIRST, before any other view conditions
+  if (isAddingPlayers && selectedGame && scorecardId) {
+    console.log('Condition met for AddPlayersScreen:', {
+      isAddingPlayers,
+      hasSelectedGame: !!selectedGame,
+      scorecardId
+    });
+    return (
+      <AddPlayersScreen
+        gameId={selectedGame.gameID}
+        scorecardId={scorecardId}
+        onBack={() => setIsAddingPlayers(false)}
+        onAddPlayers={handleAddPlayers}
+      />
+    );
+  }
+
+  // If we're in scoring mode and have both a selected game and scorecard, show the scoring screen
+  if (isScoring && selectedGame && scorecardId) {
+    return (
+      <ScoringScreen
+        gameId={selectedGame.gameID}
+        scorecardId={scorecardId}
+        onBack={() => setIsScoring(false)}
+      />
+    );
+  }
+
+  // If we have a selected scorecard but aren't scoring, show the details view
+  if (scorecardId && !isScoring) {
+    return (
+      <div className="p-4">
+        <div className="max-w-sm mx-auto">
+          <div className="flex items-center mb-6">
+            <button
+              onClick={() => setCurrentScorecard(null)}
+              className="mr-4 p-2 hover:bg-gray-100 rounded-full"
+            >
+              <ArrowLeft className="w-6 h-6" />
+            </button>
+            <h2 className="text-2xl font-bold text-gray-900">Scorecard Players</h2>
+            <div className="flex-1 flex justify-end">
+              <img 
+                src={ICONS.ADD_USERS}
+                alt="Add Multiple Players"
+                onClick={() => {
+                  console.log('Before setting isAddingPlayers:', {
+                    current: isAddingPlayers,
+                    selectedGame,
+                    scorecardId
+                  });
+                  setIsAddingPlayers(true);
+                  console.log('After setting isAddingPlayers');
+                }}
+                className="w-6 h-6 mr-2 cursor-pointer"
+              />
+              <button
+                onClick={loadPlayers}
+                disabled={isRefreshing}
+                className={`p-2 hover:bg-gray-100 rounded-full
+                  ${isRefreshing ? 'opacity-50 cursor-not-allowed' : ''}
+                  transition-transform active:scale-95`}
+              >
+                <RotateCw className={`w-5 h-5 ${isRefreshing ? 'animate-spin' : ''}`} />
+              </button>
+            </div>
+          </div>
+
+          {isLoading ? (
+            <div className="text-center py-4">Loading players...</div>
+          ) : error ? (
+            <div className="text-red-600 text-center py-4">{error}</div>
+          ) : (
+            <>
+              <div className="bg-white rounded-lg shadow mb-6">
+                <div className="divide-y divide-gray-200">
+                  {players.map((player) => (
+                    <div
+                      key={player.playerID}
+                      className="flex items-center justify-between p-4"
+                    >
+                      <div>
+                        <div className="text-sm font-medium text-gray-900">
+                          {player.firstName} {player.lastName}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          Handicap: {player.handicap || 'N/A'} • {player.tee?.name || 'No Tee'}
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleDeletePlayer(player.playerID)}
+                        disabled={isDeletingPlayer}
+                        className={`p-2 text-gray-400 hover:text-red-600 rounded-full hover:bg-gray-100
+                          ${isDeletingPlayer ? 'opacity-50 cursor-not-allowed' : ''}
+                        `}
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mb-8">
+                <button
+                  onClick={() => setIsScoring(true)}
+                  className="w-full bg-blue-600 text-white py-3 px-4 rounded-md font-medium hover:bg-blue-700 transition-colors"
+                >
+                  Start Scoring
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   // If we're editing a scorecard, show the edit form
   if (isEditingScorecard) {
@@ -241,120 +413,6 @@ export function ScorecardScreen() {
               </button>
             </div>
           </div>
-        </div>
-      </div>
-    );
-  }
-
-  // If we're in scoring mode and have both a selected game and scorecard, show the scoring screen
-  if (isScoring && selectedGame && scorecardId) {
-    return (
-      <ScoringScreen
-        gameId={selectedGame.gameID}
-        scorecardId={scorecardId}
-        onBack={() => {
-          setIsScoring(false);  // Go back to scorecard details
-        }}
-      />
-    );
-  }
-
-  // If we have a selected scorecard but aren't scoring, show the details view
-  if (scorecardId && !isScoring) {
-    return (
-      <div className="p-4">
-        <div className="max-w-sm mx-auto">
-          <div className="flex items-center mb-6">
-            <button
-              onClick={() => setCurrentScorecard(null)}
-              className="mr-4 p-2 hover:bg-gray-100 rounded-full"
-            >
-              <ArrowLeft className="w-6 h-6" />
-            </button>
-            <h2 className="text-2xl font-bold text-gray-900">Scorecard Players</h2>
-            <div className="flex-1 flex justify-end">
-              <button
-                onClick={loadScorecards}
-                disabled={isRefreshing}
-                className={`p-2 hover:bg-gray-100 rounded-full
-                  ${isRefreshing ? 'opacity-50 cursor-not-allowed' : ''}
-                  transition-transform active:scale-95`}
-              >
-                <RotateCw className={`w-5 h-5 ${isRefreshing ? 'animate-spin' : ''}`} />
-              </button>
-            </div>
-          </div>
-
-          {isLoading ? (
-            <div className="text-center py-4">Loading players...</div>
-          ) : error ? (
-            <div className="text-red-600 text-center py-4">{error}</div>
-          ) : (
-            <>
-              <div className="bg-white rounded-lg shadow mb-6">
-                <div className="px-4 py-5 sm:p-6">
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Player
-                          </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Handicap
-                          </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Tee
-                          </th>
-                          <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Gross
-                          </th>
-                          <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Net
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {players.map((player) => {
-                          const grossTotal = player.scores.reduce((sum, score) => sum + (score.grossScore || 0), 0);
-                          const netTotal = player.scores.reduce((sum, score) => sum + (score.netScore || 0), 0);
-                          
-                          return (
-                            <tr key={player.playerID}>
-                              <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {player.firstName} {player.lastName}
-                              </td>
-                              <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {player.handicap || '-'}
-                              </td>
-                              <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {player.tee?.name || '-'}
-                              </td>
-                              <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                                {grossTotal || '-'}
-                              </td>
-                              <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                                {netTotal || '-'}
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex justify-center">
-                <button
-                  onClick={() => setIsScoring(true)}
-                  className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium"
-                >
-                  Start Scoring
-                </button>
-              </div>
-            </>
-          )}
         </div>
       </div>
     );
