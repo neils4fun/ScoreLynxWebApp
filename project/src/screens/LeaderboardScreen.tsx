@@ -39,7 +39,7 @@ export default function LeaderboardScreen() {
   const [error, setError] = useState<string | null>(null);
 
   const getLeaderboardTabs = () => {
-    const isMatchplay = selectedGame?.teamPlayerType === 'Matchplay';
+    const isMatchplay = selectedGame?.gameType === 'Matchplay';
     return [
       { id: 'team', label: isMatchplay ? 'Matchplay' : 'Team' },
       { id: 'player', label: 'Player' },
@@ -61,7 +61,7 @@ export default function LeaderboardScreen() {
         const signal = abortController.signal;
 
         if (activeTab === 'team') {
-          if (selectedGame.teamPlayerType === 'Matchplay') {
+          if (selectedGame.gameType === 'Matchplay') {
             const data = await fetchMatchplayLeaderboard(selectedGame.gameID);
             if (!signal.aborted) {
               setMatchplayData(data.leaders.flat());
@@ -112,7 +112,7 @@ export default function LeaderboardScreen() {
     }
 
     if (activeTab === 'team') {
-      if (selectedGame.teamPlayerType === 'Matchplay') {
+      if (selectedGame.gameType === 'Matchplay') {
         return (
           <MatchplayLeaderboard 
             leaders={matchplayData}

@@ -1,6 +1,6 @@
-import { Game } from '../types/game';
-import { formatGameDate } from '../utils/dateUtils';
-import { useGame } from '../context/GameContext';
+import type { Game } from '../../types/game';
+import { formatGameDate } from '../../utils/dateUtils';
+import { useGroup } from '../../context/GroupContext';
 
 interface GameCardProps {
   game: Game;
@@ -8,7 +8,7 @@ interface GameCardProps {
 }
 
 export function GameCard({ game, isSelected }: GameCardProps) {
-  const { setSelectedGame } = useGame();
+  const { setSelectedGame } = useGroup();
 
   return (
     <div 

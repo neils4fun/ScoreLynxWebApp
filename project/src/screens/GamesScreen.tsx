@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
-import { GroupList } from '../components/GroupList';
-import { GameList } from '../components/GameList';
-import { SearchField } from '../components/SearchField';
+import { GroupList } from '../components/game/GroupList';
+import { GameList } from '../components/game/GameList';
+import { SearchField } from '../components/game/SearchField';
 import { useDebounce } from '../hooks/useDebounce';
 import { fetchGolfGroups, fetchGroupGames } from '../api/gameApi';
 import { useGroup } from '../context/GroupContext';
+import { GamePlayersScreen } from './GamePlayersScreen';
+import { GameTeamsScreen } from './GameTeamsScreen';
 import type { GolfGroup } from '../types/game';
 
 export default function GamesScreen() {
@@ -16,8 +18,12 @@ export default function GamesScreen() {
     searchTerm,
     setSearchTerm,
     searchResults,
-    setSearchResults
+    setSearchResults,
+    selectedGame,
+    setSelectedGame 
   } = useGroup();
+  
+  const typedSelectedGroup = selectedGroup as GolfGroup | null;
   
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -61,22 +67,35 @@ export default function GamesScreen() {
     }
   };
 
-  const handleBack = () => {
-    setSelectedGroup(null);
-    setGames([]);
-  };
+  if (selectedGame) {
+    if (selectedGame.teamPlayerType === 'Player') {
+      return <GamePlayersScreen game={selectedGame} onBack={() => setSelectedGame(null)} />;
+    } else {
+      return <GameTeamsScreen game={selectedGame} onBack={() => setSelectedGame(null)} />;
+    }
+  }
+
+  if (typedSelectedGroup) {
+    return (
+      <div className="p-4">
+        <GameList 
+          games={games}
+          onBack={() => {
+            setSelectedGroup(null);
+            setGames([]);
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="p-4">
-      {!selectedGroup && (
-        <>
-          <h1 className="text-2xl font-bold text-gray-900 mb-6">Select Group</h1>
-          <SearchField 
-            value={searchTerm}
-            onChange={setSearchTerm}
-          />
-        </>
-      )}
+      <h1 className="text-2xl font-bold text-gray-900 mb-6">Select Group</h1>
+      <SearchField 
+        value={searchTerm}
+        onChange={setSearchTerm}
+      />
       
       {isLoading && (
         <p className="text-gray-600">Loading...</p>
@@ -86,19 +105,16 @@ export default function GamesScreen() {
         <p className="text-red-600">{error}</p>
       )}
       
-      {!isLoading && !error && !selectedGroup && (
+      {!isLoading && !error && searchResults.length > 0 && (
         <GroupList 
           groups={searchResults} 
           onGroupSelect={handleGroupSelect}
-          selectedGroupId={undefined}
+          selectedGroupId={selectedGroup && 'groupID' in selectedGroup ? selectedGroup.groupID : undefined}
         />
       )}
-
-      {!isLoading && !error && selectedGroup && (
-        <GameList 
-          games={games}
-          onBack={handleBack}
-        />
+      
+      {!isLoading && !error && searchResults.length === 0 && (
+        <p className="text-gray-600">No groups found</p>
       )}
     </div>
   );
