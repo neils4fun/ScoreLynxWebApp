@@ -9,7 +9,7 @@ export interface Game {
   name: string;
   date: string;
   courseName: string;
-  teamPlayerType: 'Player' | 'Team';
+  teamPlayerType: 'Player' | 'Team' | 'Matchplay';
   gameKey: string;
   gameType: string;
   skinType: string;

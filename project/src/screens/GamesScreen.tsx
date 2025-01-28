@@ -23,8 +23,6 @@ export default function GamesScreen() {
     setSelectedGame 
   } = useGroup();
   
-  const typedSelectedGroup = selectedGroup as GolfGroup | null;
-  
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const debouncedSearchTerm = useDebounce(searchTerm, 1000);
@@ -43,7 +41,7 @@ export default function GamesScreen() {
         const data = await fetchGolfGroups(debouncedSearchTerm);
         setSearchResults(data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch groups');
+        setError(err instanceof Error ? err.message : 'Failed to fetch games');
       } finally {
         setIsLoading(false);
       }
@@ -69,13 +67,27 @@ export default function GamesScreen() {
 
   if (selectedGame) {
     if (selectedGame.teamPlayerType === 'Player') {
-      return <GamePlayersScreen game={selectedGame} onBack={() => setSelectedGame(null)} />;
+      return (
+        <GamePlayersScreen 
+          game={selectedGame} 
+          onBack={() => {
+            setSelectedGame(null);
+          }} 
+        />
+      );
     } else {
-      return <GameTeamsScreen game={selectedGame} onBack={() => setSelectedGame(null)} />;
+      return (
+        <GameTeamsScreen 
+          game={selectedGame} 
+          onBack={() => {
+            setSelectedGame(null);
+          }} 
+        />
+      );
     }
   }
 
-  if (typedSelectedGroup) {
+  if (selectedGroup) {
     return (
       <div className="p-4">
         <GameList 
@@ -109,7 +121,7 @@ export default function GamesScreen() {
         <GroupList 
           groups={searchResults} 
           onGroupSelect={handleGroupSelect}
-          selectedGroupId={selectedGroup && 'groupID' in selectedGroup ? selectedGroup.groupID : undefined}
+          selectedGroupId={selectedGroup ? (selectedGroup as GolfGroup).groupID : undefined}
         />
       )}
       

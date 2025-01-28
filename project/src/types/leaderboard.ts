@@ -42,27 +42,32 @@ export interface TeamLeaderboardResponse {
 export interface PlayerLeader {
   playerID: string;
   playerName: string;
-  handicap: string;
   grossScore: number;
-  relativeScore: number;
+  absoluteScore: string;
+  relativeScore: string;
+  thruHole: number;
+  place: number;
+  handicap: string;
   holesPlayed: string;
 }
 
+interface ApiStatus {
+  code: number;
+  message: string;
+}
+
 export interface PlayerLeaderboardResponse {
-  status: {
-    code: number;
-    message: string;
-  };
-  gameID: string;
+  status: ApiStatus;
   leaders: PlayerLeader[][];
+  headers: string[][];
   gameTypes: string[];
 }
 
 export interface Skin {
-  playerID: number;
+  playerID: string;
   firstName: string;
   lastName: string;
-  type: string;
+  type: 'Net' | 'Gross';
   gameID: number;
   holeNumber: number;
   score: string;

@@ -1,35 +1,29 @@
-import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { createContext, useContext } from 'react';
 import type { Game } from '../types/game';
+import { useGroup } from './GroupContext';
 
 interface GameContextType {
   selectedGame: Game | null;
   setSelectedGame: (game: Game | null) => void;
-  clearGame: () => void;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
-export function GameProvider({ children }: { children: ReactNode }) {
-  const [selectedGame, setSelectedGame] = useState<Game | null>(() => {
-    const saved = localStorage.getItem('selectedGame');
-    return saved ? JSON.parse(saved) : null;
-  });
-
-  useEffect(() => {
-    if (selectedGame) {
-      localStorage.setItem('selectedGame', JSON.stringify(selectedGame));
-    } else {
-      localStorage.removeItem('selectedGame');
-    }
-  }, [selectedGame]);
-
-  const clearGame = () => {
-    setSelectedGame(null);
-    localStorage.removeItem('selectedGame');
+export function GameProvider({ children }: { children: React.ReactNode }) {
+  const { selectedGame: groupSelectedGame, setSelectedGame: setGroupSelectedGame } = useGroup();
+  
+  // Use the group's selected game as the source of truth
+  const setSelectedGame = (game: Game | null) => {
+    setGroupSelectedGame(game);
   };
 
   return (
-    <GameContext.Provider value={{ selectedGame, setSelectedGame, clearGame }}>
+    <GameContext.Provider
+      value={{
+        selectedGame: groupSelectedGame,
+        setSelectedGame
+      }}
+    >
       {children}
     </GameContext.Provider>
   );

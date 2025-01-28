@@ -26,7 +26,7 @@ export function GameList({ games, onBack }: GameListProps) {
         <h2 className="text-2xl font-bold text-gray-900">Games</h2>
       </div>
 
-      <div className="divide-y divide-gray-200">
+      <div className="space-y-4">
         {games.map((game) => (
           <div key={game.gameID}>
             <GameCard 

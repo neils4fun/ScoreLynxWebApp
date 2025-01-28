@@ -37,16 +37,40 @@ export default function LeaderboardScreen() {
   const [payoutsData, setPayoutsData] = useState<Payout[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [playerHeaders, setPlayerHeaders] = useState<string[][]>([]);
+  const [payoutHeaders, setPayoutHeaders] = useState<string[][]>([]);
 
   const getLeaderboardTabs = () => {
-    const isMatchplay = selectedGame?.gameType === 'Matchplay';
-    return [
-      { id: 'team', label: isMatchplay ? 'Matchplay' : 'Team' },
-      { id: 'player', label: 'Player' },
-      { id: 'skins', label: 'Skins' },
-      { id: 'payouts', label: 'Payouts' },
-    ];
+    if (!selectedGame) return [];
+    
+    if (selectedGame.teamPlayerType === 'Matchplay') {
+      return [
+        { id: 'team', label: 'Matchplay' },
+        { id: 'player', label: 'Player' },
+        { id: 'skins', label: 'Skins' },
+        { id: 'payouts', label: 'Payouts' },
+      ];
+    } else if (selectedGame.teamPlayerType === 'Player') {
+      return [
+        { id: 'player', label: 'Player' },
+        { id: 'skins', label: 'Skins' },
+        { id: 'payouts', label: 'Payouts' },
+      ];
+    } else {
+      return [
+        { id: 'team', label: 'Team' },
+        { id: 'player', label: 'Player' },
+        { id: 'skins', label: 'Skins' },
+        { id: 'payouts', label: 'Payouts' },
+      ];
+    }
   };
+
+  useEffect(() => {
+    if (selectedGame?.teamPlayerType === 'Player') {
+      setActiveTab('player');
+    }
+  }, [selectedGame]);
 
   useEffect(() => {
     const abortController = new AbortController();
@@ -61,7 +85,7 @@ export default function LeaderboardScreen() {
         const signal = abortController.signal;
 
         if (activeTab === 'team') {
-          if (selectedGame.gameType === 'Matchplay') {
+          if (selectedGame.teamPlayerType === 'Matchplay') {
             const data = await fetchMatchplayLeaderboard(selectedGame.gameID);
             if (!signal.aborted) {
               setMatchplayData(data.leaders.flat());
@@ -76,6 +100,7 @@ export default function LeaderboardScreen() {
           const data = await fetchPlayerLeaderboard(selectedGame.gameID);
           if (!signal.aborted) {
             setPlayerData(data.leaders.flat());
+            setPlayerHeaders(data.headers);
           }
         } else if (activeTab === 'skins') {
           const data = await fetchSkins(selectedGame.gameID);
@@ -86,6 +111,7 @@ export default function LeaderboardScreen() {
           const data = await fetchPayouts(selectedGame.gameID);
           if (!signal.aborted) {
             setPayoutsData(data.payouts.flat());
+            setPayoutHeaders(data.headers);
           }
         }
       } catch (err) {
@@ -112,7 +138,7 @@ export default function LeaderboardScreen() {
     }
 
     if (activeTab === 'team') {
-      if (selectedGame.gameType === 'Matchplay') {
+      if (selectedGame.teamPlayerType === 'Matchplay') {
         return (
           <MatchplayLeaderboard 
             leaders={matchplayData}
@@ -134,6 +160,7 @@ export default function LeaderboardScreen() {
       return (
         <PlayerLeaderboard 
           leaders={playerData}
+          headers={playerHeaders}
           isLoading={isLoading}
           error={error}
         />
@@ -146,7 +173,6 @@ export default function LeaderboardScreen() {
           skins={skinsData}
           isLoading={isLoading}
           error={error}
-          gameType={selectedGame.gameType}
           onSkinSelect={(holeNumber, type) => {
             setSelectedSkin({ holeNumber, type });
           }}
@@ -158,6 +184,7 @@ export default function LeaderboardScreen() {
       return (
         <PayoutsLeaderboard 
           payouts={payoutsData}
+          headers={payoutHeaders}
           isLoading={isLoading}
           error={error}
         />
