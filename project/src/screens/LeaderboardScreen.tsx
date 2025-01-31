@@ -35,14 +35,19 @@ export default function LeaderboardScreen() {
   });
   const [selectedSkin, setSelectedSkin] = useState<SelectedSkin | null>(null);
   const [matchplayData, setMatchplayData] = useState<MatchplayLeader[]>([]);
-  const [playerData, setPlayerData] = useState<PlayerLeader[]>([]);
-  const [teamData, setTeamData] = useState<TeamLeader[]>([]);
-  const [skinsData, setSkinsData] = useState<Skin[]>([]);
-  const [payoutsData, setPayoutsData] = useState<Payout[]>([]);
+  const [playerData, setPlayerData] = useState<PlayerLeader[][]>([]);
+  const [teamData, setTeamData] = useState<TeamLeader[][]>([]);
+  const [skinsData, setSkinsData] = useState<Skin[][]>([]);
+  const [payoutsData, setPayoutsData] = useState<Payout[][]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [playerHeaders, setPlayerHeaders] = useState<string[][]>([]);
   const [payoutHeaders, setPayoutHeaders] = useState<string[][]>([]);
+  const [playerGameTypes, setPlayerGameTypes] = useState<string[]>([]);
+  const [teamHeaders, setTeamHeaders] = useState<string[][]>([]);
+  const [teamGameTypes, setTeamGameTypes] = useState<string[]>([]);
+  const [skinsGameTypes, setSkinsGameTypes] = useState<string[]>([]);
+  const [payoutGameTypes, setPayoutGameTypes] = useState<string[]>([]);
 
   // Save active tab to localStorage whenever it changes
   useEffect(() => {
@@ -95,19 +100,24 @@ export default function LeaderboardScreen() {
           setMatchplayData(data.leaders.flat());
         } else {
           const data = await fetchTeamLeaderboard(selectedGame.gameID);
-          setTeamData(data.leaders.flat());
+          setTeamData(data.leaders);
+          setTeamHeaders(data.headers);
+          setTeamGameTypes(data.gameTypes);
         }
       } else if (activeTab === 'player') {
         const data = await fetchPlayerLeaderboard(selectedGame.gameID);
-        setPlayerData(data.leaders.flat());
+        setPlayerData(data.leaders);
         setPlayerHeaders(data.headers);
+        setPlayerGameTypes(data.gameTypes);
       } else if (activeTab === 'skins') {
         const data = await fetchSkins(selectedGame.gameID);
-        setSkinsData(data.skins.flat());
+        setSkinsData(data.skins);
+        setSkinsGameTypes(data.gameTypes);
       } else if (activeTab === 'payouts') {
         const data = await fetchPayouts(selectedGame.gameID);
-        setPayoutsData(data.payouts.flat());
+        setPayoutsData(data.payouts);
         setPayoutHeaders(data.headers);
+        setPayoutGameTypes(data.gameTypes);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load leaderboard data');
@@ -144,6 +154,8 @@ export default function LeaderboardScreen() {
       return (
         <TeamLeaderboard 
           leaders={teamData}
+          headers={teamHeaders}
+          gameTypes={teamGameTypes}
           isLoading={isLoading}
           error={error}
         />
@@ -155,6 +167,7 @@ export default function LeaderboardScreen() {
         <PlayerLeaderboard 
           leaders={playerData}
           headers={playerHeaders}
+          gameTypes={playerGameTypes}
           isLoading={isLoading}
           error={error}
         />
@@ -165,6 +178,7 @@ export default function LeaderboardScreen() {
       return (
         <SkinsLeaderboard 
           skins={skinsData}
+          gameTypes={skinsGameTypes}
           isLoading={isLoading}
           error={error}
           onSkinSelect={(holeNumber, type) => {
@@ -179,6 +193,7 @@ export default function LeaderboardScreen() {
         <PayoutsLeaderboard 
           payouts={payoutsData}
           headers={payoutHeaders}
+          gameTypes={payoutGameTypes}
           isLoading={isLoading}
           error={error}
         />

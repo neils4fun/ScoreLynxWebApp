@@ -36,6 +36,7 @@ export interface TeamLeaderboardResponse {
   };
   gameID: string;
   leaders: TeamLeader[][];
+  headers: string[][];
   gameTypes: string[];
 }
 
