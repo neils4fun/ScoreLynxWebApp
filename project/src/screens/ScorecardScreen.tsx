@@ -17,7 +17,10 @@ export function ScorecardScreen() {
   const [scorecards, setScorecards] = useState<ScorecardListResponse['scorecards']>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isScoring, setIsScoring] = useState(false);
+  const [isScoring, setIsScoring] = useState(() => {
+    const saved = localStorage.getItem('scorecardIsScoring');
+    return saved === 'true';
+  });
   const [isCreatingScorecard, setIsCreatingScorecard] = useState(false);
   const [isEditingScorecard, setIsEditingScorecard] = useState(false);
   const [editingScorecardId, setEditingScorecardId] = useState<string | null>(null);
@@ -26,6 +29,19 @@ export function ScorecardScreen() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isAddingPlayers, setIsAddingPlayers] = useState(false);
   const [isDeletingPlayer, setIsDeletingPlayer] = useState(false);
+
+  // Save scoring state to localStorage
+  useEffect(() => {
+    localStorage.setItem('scorecardIsScoring', isScoring.toString());
+  }, [isScoring]);
+
+  // Clear scoring state when scorecard changes
+  useEffect(() => {
+    if (!scorecardId) {
+      setIsScoring(false);
+      localStorage.removeItem('scorecardIsScoring');
+    }
+  }, [scorecardId]);
 
   const loadScorecards = async () => {
     if (!selectedGame) return;

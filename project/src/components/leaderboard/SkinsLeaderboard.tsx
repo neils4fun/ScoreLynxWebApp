@@ -26,47 +26,49 @@ export function SkinsLeaderboard({
   }
 
   return (
-    <div className="bg-white rounded-lg shadow overflow-hidden">
-      <table className="min-w-full">
-        <thead>
-          <tr className="bg-gray-50 border-b border-gray-200">
-            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Hole
-            </th>
-            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Player
-            </th>
-            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Type
-            </th>
-            <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Score
-            </th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-gray-200">
-          {skins.map((skin, index) => (
-            <tr 
-              key={`${skin.holeNumber}-${skin.type}-${index}`}
-              onClick={() => onSkinSelect(skin.holeNumber, skin.type)}
-              className={`${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} cursor-pointer hover:bg-gray-100`}
-            >
-              <td className="px-4 py-2 text-sm text-gray-900 whitespace-nowrap">
-                {skin.holeNumber}
-              </td>
-              <td className="px-4 py-2 text-sm text-gray-900 whitespace-nowrap">
-                {`${skin.firstName} ${skin.lastName}`}
-              </td>
-              <td className="px-4 py-2 text-sm text-gray-900 whitespace-nowrap">
-                {skin.type}
-              </td>
-              <td className="px-4 py-2 text-sm text-gray-900 whitespace-nowrap text-right">
-                {skin.type === 'Net' ? skin.score : skin.gross}
-              </td>
+    <div className="bg-white rounded-lg shadow">
+      <div className="min-w-[500px]">
+        <table className="w-full">
+          <thead>
+            <tr className="bg-gray-50 border-b border-gray-200">
+              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Hole
+              </th>
+              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Player
+              </th>
+              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Type
+              </th>
+              <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Score
+              </th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="divide-y divide-gray-200">
+            {skins.map((skin, index) => (
+              <tr 
+                key={`${skin.holeNumber}-${skin.type}-${index}`}
+                onClick={() => onSkinSelect(skin.holeNumber, skin.type)}
+                className={`${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} cursor-pointer hover:bg-gray-100`}
+              >
+                <td className="px-4 py-2 text-sm text-gray-900 whitespace-nowrap">
+                  {skin.holeNumber}
+                </td>
+                <td className="px-4 py-2 text-sm text-gray-900 whitespace-nowrap">
+                  {`${skin.firstName} ${skin.lastName}`}
+                </td>
+                <td className="px-4 py-2 text-sm text-gray-900 whitespace-nowrap">
+                  {skin.type}
+                </td>
+                <td className="px-4 py-2 text-sm text-gray-900 whitespace-nowrap text-right">
+                  {skin.type === 'Net' ? skin.score : skin.gross}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

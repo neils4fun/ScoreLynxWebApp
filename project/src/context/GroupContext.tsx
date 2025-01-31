@@ -18,13 +18,22 @@ interface GroupContextType {
 const GroupContext = createContext<GroupContextType | undefined>(undefined);
 
 export function GroupProvider({ children }: { children: ReactNode }) {
-  const [selectedGroup, setSelectedGroup] = useState<GolfGroup | null>(null);
+  const [selectedGroup, setSelectedGroup] = useState<GolfGroup | null>(() => {
+    const saved = localStorage.getItem('selectedGroup');
+    return saved ? JSON.parse(saved) : null;
+  });
   
-  const [games, setGames] = useState<Game[]>([]);
+  const [games, setGames] = useState<Game[]>(() => {
+    const saved = localStorage.getItem('groupGames');
+    return saved ? JSON.parse(saved) : [];
+  });
   
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<GolfGroup[]>([]);
-  const [selectedGame, setSelectedGame] = useState<Game | null>(null);
+  const [selectedGame, setSelectedGame] = useState<Game | null>(() => {
+    const saved = localStorage.getItem('selectedGame');
+    return saved ? JSON.parse(saved) : null;
+  });
 
   useEffect(() => {
     if (selectedGroup) {
@@ -42,13 +51,23 @@ export function GroupProvider({ children }: { children: ReactNode }) {
     }
   }, [games]);
 
+  useEffect(() => {
+    if (selectedGame) {
+      localStorage.setItem('selectedGame', JSON.stringify(selectedGame));
+    } else {
+      localStorage.removeItem('selectedGame');
+    }
+  }, [selectedGame]);
+
   const clearGroup = () => {
     setSelectedGroup(null);
     setGames([]);
     setSearchResults([]);
     setSearchTerm('');
+    setSelectedGame(null);
     localStorage.removeItem('selectedGroup');
     localStorage.removeItem('groupGames');
+    localStorage.removeItem('selectedGame');
   };
 
   return (
