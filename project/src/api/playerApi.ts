@@ -99,4 +99,33 @@ export async function removeScorecardPlayer(
   }
 
   return response.json();
+}
+
+interface GamePlayerListResponse {
+  status: {
+    code: number;
+    message: string;
+  };
+  players: Player[];
+}
+
+export async function fetchGamePlayerList(gameId: string): Promise<GamePlayerListResponse> {
+  const response = await fetch(`${API_BASE}/getGamePlayerList`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      gameID: gameId,
+      appVersion: APP_VERSION,
+      source: APP_SOURCE,
+      deviceID: DEVICE_ID,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch game players');
+  }
+
+  return response.json();
 } 
