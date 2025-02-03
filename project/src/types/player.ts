@@ -1,4 +1,4 @@
-interface Tee {
+export interface Tee {
   teeID: string;
   name: string;
   slope: number;

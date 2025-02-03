@@ -128,4 +128,84 @@ export async function fetchGamePlayerList(gameId: string): Promise<GamePlayerLis
   }
 
   return response.json();
+}
+
+interface UpdatePlayerRequest {
+  playerID: string;
+  gameID: string;
+  groupID: string;
+  firstName: string;
+  lastName: string;
+  handicap: number | null;
+  teeID: string;
+  didPay: number;
+  venmoName: string | null;
+  source?: string;
+  appVersion?: string;
+  deviceID?: string;
+}
+
+interface UpdatePlayerResponse {
+  status: {
+    code: number;
+    message: string;
+  };
+  playerID: string;
+}
+
+export async function updatePlayer(params: UpdatePlayerRequest): Promise<UpdatePlayerResponse> {
+  const response = await fetch(`${API_BASE}/updatePlayer`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      ...params,
+      source: APP_SOURCE,
+      appVersion: APP_VERSION,
+      deviceID: DEVICE_ID,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to update player');
+  }
+
+  return response.json();
+}
+
+interface Tee {
+  teeID: string;
+  name: string;
+  slope: number;
+  rating: number;
+}
+
+interface GetTeesForCourseResponse {
+  status: {
+    code: number;
+    message: string;
+  };
+  tees: Tee[];
+}
+
+export async function fetchTeesForCourse(courseId: string): Promise<GetTeesForCourseResponse> {
+  const response = await fetch(`${API_BASE}/getTeesForCourse`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      courseID: courseId,
+      appVersion: APP_VERSION,
+      source: APP_SOURCE,
+      deviceID: DEVICE_ID,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch tees');
+  }
+
+  return response.json();
 } 

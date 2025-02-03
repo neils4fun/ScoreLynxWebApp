@@ -1,33 +1,29 @@
 import { useState, useEffect } from 'react';
 import { ArrowLeft, RotateCw } from 'lucide-react';
-import { fetchGamePlayerList } from '../api/playerApi';
-import { EditPlayerScreen } from './EditPlayerScreen';
-import { useGroup } from '../context/GroupContext';
-import type { Game } from '../types/game';
-import type { Player } from '../types/player';
+import { fetchTeesForCourse } from '../api/playerApi';
+import type { Tee } from '../types/player';
 
-interface GamePlayersScreenProps {
-  game: Game;
+interface SelectTeeScreenProps {
+  courseId: string;
   onBack: () => void;
+  onSelect: (tee: Tee) => void;
 }
 
-export function GamePlayersScreen({ game, onBack }: GamePlayersScreenProps) {
-  const { selectedGroup } = useGroup();
-  const [players, setPlayers] = useState<Player[]>([]);
+export function SelectTeeScreen({ courseId, onBack, onSelect }: SelectTeeScreenProps) {
+  const [tees, setTees] = useState<Tee[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
 
-  const loadPlayers = async () => {
+  const loadTees = async () => {
     setIsRefreshing(true);
     setError(null);
 
     try {
-      const response = await fetchGamePlayerList(game.gameID);
-      setPlayers(response.players);
+      const response = await fetchTeesForCourse(courseId);
+      setTees(response.tees);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load players');
+      setError(err instanceof Error ? err.message : 'Failed to load tees');
     } finally {
       setIsRefreshing(false);
     }
@@ -35,33 +31,8 @@ export function GamePlayersScreen({ game, onBack }: GamePlayersScreenProps) {
 
   useEffect(() => {
     setIsLoading(true);
-    loadPlayers().finally(() => setIsLoading(false));
-  }, [game.gameID]);
-
-  const handlePlayerSelect = (player: Player) => {
-    setSelectedPlayer(player);
-  };
-
-  const handlePlayerSave = async (updatedPlayer: Player) => {
-    setPlayers(players.map(p => 
-      p.playerID === updatedPlayer.playerID ? updatedPlayer : p
-    ));
-    setSelectedPlayer(null);
-    // Refresh the player list to get the latest data
-    await loadPlayers();
-  };
-
-  if (selectedPlayer && selectedGroup) {
-    return (
-      <EditPlayerScreen
-        player={selectedPlayer}
-        game={game}
-        groupId={selectedGroup.groupID}
-        onBack={() => setSelectedPlayer(null)}
-        onSave={handlePlayerSave}
-      />
-    );
-  }
+    loadTees().finally(() => setIsLoading(false));
+  }, [courseId]);
 
   return (
     <div className="p-4">
@@ -73,10 +44,10 @@ export function GamePlayersScreen({ game, onBack }: GamePlayersScreenProps) {
           >
             <ArrowLeft className="w-6 h-6" />
           </button>
-          <h2 className="text-2xl font-bold text-gray-900">Players</h2>
+          <h2 className="text-2xl font-bold text-gray-900">Select Tee</h2>
           <div className="flex-1 flex justify-end">
             <button
-              onClick={loadPlayers}
+              onClick={loadTees}
               disabled={isRefreshing}
               className={`p-2 hover:bg-gray-100 rounded-full
                 ${isRefreshing ? 'opacity-50 cursor-not-allowed' : ''}
@@ -88,24 +59,24 @@ export function GamePlayersScreen({ game, onBack }: GamePlayersScreenProps) {
         </div>
 
         {isLoading ? (
-          <div className="text-center py-4">Loading players...</div>
+          <div className="text-center py-4">Loading tees...</div>
         ) : error ? (
           <div className="text-red-600 text-center py-4">{error}</div>
         ) : (
           <div className="bg-white rounded-lg shadow">
             <div className="divide-y divide-gray-200">
-              {players.map((player) => (
+              {tees.map((tee) => (
                 <div
-                  key={player.playerID}
-                  onClick={() => handlePlayerSelect(player)}
+                  key={tee.teeID}
+                  onClick={() => onSelect(tee)}
                   className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50"
                 >
                   <div>
                     <div className="text-sm font-medium text-gray-900">
-                      {player.firstName} {player.lastName}
+                      {tee.name}
                     </div>
                     <div className="text-sm text-gray-500">
-                      Handicap: {player.handicap || 'N/A'} • {player.tee?.name || 'No Tee'}
+                      Slope: {tee.slope} • Rating: {tee.rating}
                     </div>
                   </div>
                 </div>
