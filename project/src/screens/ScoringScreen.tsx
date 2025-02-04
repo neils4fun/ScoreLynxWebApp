@@ -167,119 +167,123 @@ export function ScoringScreen({ onBack, gameId, scorecardId }: ScoringScreenProp
       </div>
 
       <div className="overflow-x-auto">
-        <div className="inline-block min-w-full max-w-3xl">
-          <table className="divide-y divide-gray-200 table-layout: fixed;">
-            <thead className="bg-gray-50">
-              <tr className="divide-x divide-gray-200">
-                <th className="px-2 py-1 text-xs font-medium text-gray-500 tracking-wider w-10 h-24 relative">
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="-rotate-90 whitespace-nowrap">HOLE</div>
-                  </div>
-                </th>
-                <th className="px-2 py-1 text-xs font-medium text-gray-500 tracking-wider w-10 h-24 relative">
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="-rotate-90 whitespace-nowrap">INDEX</div>
-                  </div>
-                </th>
-                <th className="px-2 py-1 text-xs font-medium text-gray-500 tracking-wider w-10 h-24 relative">
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="-rotate-90 whitespace-nowrap">PAR</div>
-                  </div>
-                </th>
-                {players.map((player) => (
-                  <th key={player.playerID} className="px-1 py-1 text-xs font-medium text-gray-500 tracking-wider w-16 h-24">
-                    <div className="h-full flex items-center justify-center">
-                      <span className="-rotate-90 whitespace-pre text-center">
-                        {player.firstName}<br/>{player.lastName}
-                      </span>
-                    </div>
-                  </th>
-                ))}
-              </tr>
-              <tr className="divide-x divide-gray-200">
-                <th className="px-2 py-2 text-xs font-medium text-gray-500 tracking-wider" colSpan={3}>
-                  HDCP
-                </th>
-                {players.map((player) => (
-                  <th key={player.playerID} className="px-1 py-1 text-xs font-medium text-gray-500 tracking-wider text-center">
-                    {player.handicap}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {holes.slice(0, 9).map((hole) => (
-                <tr key={hole.number} className="divide-x divide-gray-200">
-                  <td className="px-2 py-0 text-right text-sm text-gray-900">{hole.number}</td>
-                  <td className="px-2 py-2 text-right text-sm text-gray-900 min-w-1">{hole.matchPlayHandicap}</td>
-                  <td className="px-2 py-2 text-right text-sm text-gray-900 min-w-1">{hole.par}</td>
-                  {players.map((player) => (
-                    <td key={player.playerID} className="px-1 py-1 text-sm">
-                      <div className="flex space-x-1">
-                        {renderScoreInput(player, hole.number)}
-                        <div className="w-8 py-1 text-right text-sm text-gray-900">
-                          {player.scores.find(s => s.holeNumber === hole.number)?.netScore ?? '0'}
-                        </div>
+        <div className="relative max-h-[calc(100vh-8rem)] overflow-hidden">
+          <div className="overflow-auto max-h-[calc(100vh-8rem)]">
+            <div className="inline-block min-w-full max-w-3xl">
+              <table className="divide-y divide-gray-200 table-layout: fixed;">
+                <thead className="bg-gray-50">
+                  <tr className="divide-x divide-gray-200">
+                    <th className="sticky top-0 z-20 px-2 py-1 text-xs font-medium text-gray-500 tracking-wider w-10 h-24 relative bg-gray-50">
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="-rotate-90 whitespace-nowrap">HOLE</div>
                       </div>
-                    </td>
-                  ))}
-                </tr>
-              ))}
-              {/* Front 9 Totals Row */}
-              <tr className="divide-x divide-gray-200 bg-gray-100">
-                <td className="px-2 py-2 text-right text-sm font-bold" colSpan={3}>Out</td>
-                {players.map((player) => (
-                  <td key={player.playerID} className="px-1 py-1 text-sm">
-                    <div className="flex space-x-1">
-                      <div className="w-8 py-1 text-right text-sm text-gray-900">{player.scores.slice(0, 9).reduce((sum, score) => sum + (score?.grossScore || 0), 0)}</div>
-                      <div className="w-8 py-1 text-right text-sm text-gray-900">{player.scores.slice(0, 9).reduce((sum, score) => sum + (score?.netScore || 0), 0)}</div>
-                    </div>
-                  </td>
-                ))}
-              </tr>
-              {holes.slice(9).map((hole) => (
-                <tr key={hole.number} className="divide-x divide-gray-200">
-                  <td className="px-2 py-0 text-right text-sm text-gray-900">{hole.number}</td>
-                  <td className="px-2 py-2 text-right text-sm text-gray-900 min-w-1">{hole.matchPlayHandicap}</td>
-                  <td className="px-2 py-2 text-right text-sm text-gray-900 min-w-1">{hole.par}</td>
-                  {players.map((player) => (
-                    <td key={player.playerID} className="px-1 py-1 text-sm">
-                      <div className="flex space-x-1">
-                        {renderScoreInput(player, hole.number)}
-                        <div className="w-8 py-1 text-right text-sm text-gray-900">
-                          {player.scores.find(s => s.holeNumber === hole.number)?.netScore ?? '0'}
-                        </div>
+                    </th>
+                    <th className="sticky top-0 z-20 px-2 py-1 text-xs font-medium text-gray-500 tracking-wider w-10 h-24 relative bg-gray-50">
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="-rotate-90 whitespace-nowrap">INDEX</div>
                       </div>
-                    </td>
+                    </th>
+                    <th className="sticky top-0 z-20 px-2 py-1 text-xs font-medium text-gray-500 tracking-wider w-10 h-24 relative bg-gray-50">
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="-rotate-90 whitespace-nowrap">PAR</div>
+                      </div>
+                    </th>
+                    {players.map((player) => (
+                      <th key={player.playerID} className="sticky top-0 z-20 px-1 py-1 text-xs font-medium text-gray-500 tracking-wider w-16 h-24 bg-gray-50">
+                        <div className="h-full flex items-center justify-center">
+                          <span className="-rotate-90 whitespace-pre text-center">
+                            {player.firstName}<br/>{player.lastName}
+                          </span>
+                        </div>
+                      </th>
+                    ))}
+                  </tr>
+                  <tr className="divide-x divide-gray-200">
+                    <th className="sticky top-24 z-20 px-2 py-2 text-xs font-medium text-gray-500 tracking-wider bg-gray-50" colSpan={3}>
+                      HDCP
+                    </th>
+                    {players.map((player) => (
+                      <th key={player.playerID} className="sticky top-24 z-20 px-1 py-1 text-xs font-medium text-gray-500 tracking-wider text-center bg-gray-50">
+                        {player.handicap}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {holes.slice(0, 9).map((hole) => (
+                    <tr key={hole.number} className="divide-x divide-gray-200">
+                      <td className="px-2 py-0 text-right text-sm text-gray-900">{hole.number}</td>
+                      <td className="px-2 py-2 text-right text-sm text-gray-900 min-w-1">{hole.matchPlayHandicap}</td>
+                      <td className="px-2 py-2 text-right text-sm text-gray-900 min-w-1">{hole.par}</td>
+                      {players.map((player) => (
+                        <td key={player.playerID} className="px-1 py-1 text-sm">
+                          <div className="flex space-x-1">
+                            {renderScoreInput(player, hole.number)}
+                            <div className="w-8 py-1 text-right text-sm text-gray-900">
+                              {player.scores.find(s => s.holeNumber === hole.number)?.netScore ?? '0'}
+                            </div>
+                          </div>
+                        </td>
+                      ))}
+                    </tr>
                   ))}
-                </tr>
-              ))}
-              {/* Back 9 Totals Row */}
-              <tr className="divide-x divide-gray-200 bg-gray-100">
-                <td className="px-2 py-2 text-right text-sm font-bold" colSpan={3}>In</td>
-                {players.map((player) => (
-                  <td key={player.playerID} className="px-1 py-1 text-sm">
-                    <div className="flex space-x-1">
-                      <div className="w-8 py-1 text-right text-sm text-gray-900">{player.scores.slice(9).reduce((sum, score) => sum + (score?.grossScore || 0), 0)}</div>
-                      <div className="w-8 py-1 text-right text-sm text-gray-900">{player.scores.slice(9).reduce((sum, score) => sum + (score?.netScore || 0), 0)}</div>
-                    </div>
-                  </td>
-                ))}
-              </tr>
-              {/* Total 18 Totals Row */}
-              <tr className="divide-x divide-gray-200 bg-gray-100">
-                <td className="px-2 py-2 text-right text-sm font-bold" colSpan={3}>Total</td>
-                {players.map((player) => (
-                  <td key={player.playerID} className="px-1 py-1 text-sm">
-                    <div className="flex space-x-1">
-                      <div className="w-8 py-1 text-right text-sm text-gray-900">{player.scores.reduce((sum, score) => sum + (score?.grossScore || 0), 0)}</div>
-                      <div className="w-8 py-1 text-right text-sm text-gray-900">{player.scores.reduce((sum, score) => sum + (score?.netScore || 0), 0)}</div>
-                    </div>
-                  </td>
-                ))}
-              </tr>
-            </tbody>
-          </table>
+                  {/* Front 9 Totals Row */}
+                  <tr className="divide-x divide-gray-200 bg-gray-100">
+                    <td className="px-2 py-2 text-right text-sm font-bold" colSpan={3}>Out</td>
+                    {players.map((player) => (
+                      <td key={player.playerID} className="px-1 py-1 text-sm">
+                        <div className="flex space-x-1">
+                          <div className="w-8 py-1 text-right text-sm text-gray-900">{player.scores.slice(0, 9).reduce((sum, score) => sum + (score?.grossScore || 0), 0)}</div>
+                          <div className="w-8 py-1 text-right text-sm text-gray-900">{player.scores.slice(0, 9).reduce((sum, score) => sum + (score?.netScore || 0), 0)}</div>
+                        </div>
+                      </td>
+                    ))}
+                  </tr>
+                  {holes.slice(9).map((hole) => (
+                    <tr key={hole.number} className="divide-x divide-gray-200">
+                      <td className="px-2 py-0 text-right text-sm text-gray-900">{hole.number}</td>
+                      <td className="px-2 py-2 text-right text-sm text-gray-900 min-w-1">{hole.matchPlayHandicap}</td>
+                      <td className="px-2 py-2 text-right text-sm text-gray-900 min-w-1">{hole.par}</td>
+                      {players.map((player) => (
+                        <td key={player.playerID} className="px-1 py-1 text-sm">
+                          <div className="flex space-x-1">
+                            {renderScoreInput(player, hole.number)}
+                            <div className="w-8 py-1 text-right text-sm text-gray-900">
+                              {player.scores.find(s => s.holeNumber === hole.number)?.netScore ?? '0'}
+                            </div>
+                          </div>
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                  {/* Back 9 Totals Row */}
+                  <tr className="divide-x divide-gray-200 bg-gray-100">
+                    <td className="px-2 py-2 text-right text-sm font-bold" colSpan={3}>In</td>
+                    {players.map((player) => (
+                      <td key={player.playerID} className="px-1 py-1 text-sm">
+                        <div className="flex space-x-1">
+                          <div className="w-8 py-1 text-right text-sm text-gray-900">{player.scores.slice(9).reduce((sum, score) => sum + (score?.grossScore || 0), 0)}</div>
+                          <div className="w-8 py-1 text-right text-sm text-gray-900">{player.scores.slice(9).reduce((sum, score) => sum + (score?.netScore || 0), 0)}</div>
+                        </div>
+                      </td>
+                    ))}
+                  </tr>
+                  {/* Total 18 Totals Row */}
+                  <tr className="divide-x divide-gray-200 bg-gray-100">
+                    <td className="px-2 py-2 text-right text-sm font-bold" colSpan={3}>Total</td>
+                    {players.map((player) => (
+                      <td key={player.playerID} className="px-1 py-1 text-sm">
+                        <div className="flex space-x-1">
+                          <div className="w-8 py-1 text-right text-sm text-gray-900">{player.scores.reduce((sum, score) => sum + (score?.grossScore || 0), 0)}</div>
+                          <div className="w-8 py-1 text-right text-sm text-gray-900">{player.scores.reduce((sum, score) => sum + (score?.netScore || 0), 0)}</div>
+                        </div>
+                      </td>
+                    ))}
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </div>
     </div>
