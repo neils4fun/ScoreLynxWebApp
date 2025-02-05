@@ -161,6 +161,49 @@ export async function updateScore(
   return data;
 }
 
+interface DeleteHoleScoreRequest {
+  scoreID: string;
+  deviceID: string;
+  source: string;
+  appVersion: string;
+}
+
+interface DeleteHoleScoreResponse {
+  status: {
+    code: number;
+    message: string;
+  };
+}
+
+export async function deleteHoleScore(scoreId: string): Promise<DeleteHoleScoreResponse> {
+  const payload: DeleteHoleScoreRequest = {
+    scoreID: scoreId,
+    deviceID: DEVICE_ID,
+    source: APP_SOURCE,
+    appVersion: APP_VERSION
+  };
+
+  const response = await fetch(`${API_BASE}/deleteHoleScore`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload)
+  });
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+
+  const data = await response.json() as DeleteHoleScoreResponse;
+  
+  if (data.status.code !== 0) {
+    throw new Error(data.status.message);
+  }
+
+  return data;
+}
+
 interface AddScorecardRequest {
   name: string;
   gameID: string;

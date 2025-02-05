@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ArrowLeft, RotateCw } from 'lucide-react';
-import { fetchScorecardPlayerList, fetchCourse, updateScore } from '../api/scorecardApi';
+import { fetchScorecardPlayerList, fetchCourse, updateScore, deleteHoleScore } from '../api/scorecardApi';
 import { useGame } from '../context/GameContext';
 import type { Player, Score } from '../types/scorecard';
 import type { Hole } from '../types/course';
@@ -108,6 +108,36 @@ export function ScoringScreen({ onBack, gameId, scorecardId }: ScoringScreenProp
     const isUpdating = updatingScores.has(scoreKey);
     const isUnderPar = score?.grossScore && hole?.par && score.grossScore < hole.par;
 
+    const handleDelete = async () => {
+      if (!score?.scoreID) return;
+      
+      try {
+        setUpdatingScores(prev => new Set(prev).add(scoreKey));
+        
+        // Call the delete score API
+        await deleteHoleScore(score.scoreID);
+
+        // Update local state to remove the score
+        setPlayers(prevPlayers => 
+          prevPlayers.map(p => {
+            if (p.playerID !== player.playerID) return p;
+            return {
+              ...p,
+              scores: p.scores.filter(s => s.scoreID !== score.scoreID)
+            };
+          })
+        );
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to delete score');
+      } finally {
+        setUpdatingScores(prev => {
+          const next = new Set(prev);
+          next.delete(scoreKey);
+          return next;
+        });
+      }
+    };
+
     return (
       <input
         inputMode="numeric"
@@ -116,12 +146,21 @@ export function ScoringScreen({ onBack, gameId, scorecardId }: ScoringScreenProp
         onFocus={(e) => e.target.select()}
         onChange={(e) => {
           const value = e.target.value;
-          // Allow empty string or positive integers only
-          if (value === '' || /^[1-9]\d*$/.test(value)) {
-            if (value !== '') {  // Only process non-empty values
-              const newScore = parseInt(value, 10);
-              handleScoreChange(player.playerID, holeNumber, newScore);
+          if (value === '') {
+            // If the value is cleared, trigger delete if there's a score
+            if (score?.scoreID) {
+              handleDelete();
             }
+          } else if (/^[1-9]\d*$/.test(value)) {
+            // Only process valid positive integers
+            const newScore = parseInt(value, 10);
+            handleScoreChange(player.playerID, holeNumber, newScore);
+          }
+        }}
+        onKeyDown={(e) => {
+          if ((e.key === 'Delete' || e.key === 'Backspace') && score?.scoreID) {
+            e.preventDefault();
+            handleDelete();
           }
         }}
         disabled={isUpdating}
