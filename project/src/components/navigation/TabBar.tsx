@@ -13,7 +13,7 @@ export function TabBar({ activeTab, onTabChange }: TabBarProps) {
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200">
+    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-[100]">
       <div className="max-w-2xl mx-auto px-4">
         <div className="flex justify-around">
           {tabs.map(({ id, label, icon: Icon }) => (
@@ -32,6 +32,6 @@ export function TabBar({ activeTab, onTabChange }: TabBarProps) {
           ))}
         </div>
       </div>
-    </div>
+    </nav>
   );
 }
