@@ -1,23 +1,33 @@
 import { useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
-import { updatePlayer } from '../api/playerApi';
+import { updatePlayer, addGamePlayerByName } from '../api/playerApi';
 import { SelectTeeScreen } from './SelectTeeScreen';
 import type { Player, Tee } from '../types/player';
 import type { Game } from '../types/game';
 
 interface EditPlayerScreenProps {
-  player: Player;
+  player?: Player;
   game: Game;
   groupId: string;
   onBack: () => void;
   onSave: (updatedPlayer: Player) => void;
+  defaultTee?: Tee | null;
+  isNewPlayer?: boolean;
 }
 
-export function EditPlayerScreen({ player, game, groupId, onBack, onSave }: EditPlayerScreenProps) {
-  const [firstName, setFirstName] = useState(player.firstName);
-  const [lastName, setLastName] = useState(player.lastName);
-  const [handicap, setHandicap] = useState(player.handicap || '');
-  const [selectedTee, setSelectedTee] = useState<Tee | null>(player.tee || null);
+export function EditPlayerScreen({ 
+  player, 
+  game, 
+  groupId, 
+  onBack, 
+  onSave,
+  defaultTee,
+  isNewPlayer = false
+}: EditPlayerScreenProps) {
+  const [firstName, setFirstName] = useState(player?.firstName || '');
+  const [lastName, setLastName] = useState(player?.lastName || '');
+  const [handicap, setHandicap] = useState(player?.handicap || '');
+  const [selectedTee, setSelectedTee] = useState<Tee | null>(player?.tee || defaultTee || null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showTeeSelection, setShowTeeSelection] = useState(false);
@@ -28,32 +38,60 @@ export function EditPlayerScreen({ player, game, groupId, onBack, onSave }: Edit
     setError(null);
 
     try {
-      const response = await updatePlayer({
-        playerID: player.playerID,
-        gameID: game.gameID,
-        groupID: groupId,
-        firstName,
-        lastName,
-        handicap: handicap ? parseInt(handicap, 10) : null,
-        teeID: selectedTee?.teeID || '',
-        didPay: parseInt(player.didPay, 10) || 0,
-        venmoName: player.venmoName,
-      });
-
-      if (response.status.code === 0) {
-        const updatedPlayer = {
-          ...player,
+      if (isNewPlayer) {
+        // Add new player
+        const response = await addGamePlayerByName({
+          gameID: game.gameID,
+          groupID: groupId,
           firstName,
           lastName,
-          handicap,
+          handicap: handicap ? parseInt(handicap, 10) : null,
+          teeID: selectedTee?.teeID || '',
+          didPay: 0,
+          venmoName: null,
+        });
+
+        // Create a player object from the response
+        const newPlayer: Player = {
+          playerID: response.playerID,
+          firstName,
+          lastName,
+          handicap: handicap || null,
           tee: selectedTee || undefined,
+          venmoName: null,
+          didPay: '0',
+          scores: []
         };
-        onSave(updatedPlayer);
-      } else {
-        throw new Error(response.status.message);
+        onSave(newPlayer);
+      } else if (player) {
+        // Update existing player
+        const response = await updatePlayer({
+          playerID: player.playerID,
+          gameID: game.gameID,
+          groupID: groupId,
+          firstName,
+          lastName,
+          handicap: handicap ? parseInt(handicap, 10) : null,
+          teeID: selectedTee?.teeID || '',
+          didPay: parseInt(player.didPay, 10) || 0,
+          venmoName: player.venmoName,
+        });
+
+        if (response.status.code === 0) {
+          const updatedPlayer = {
+            ...player,
+            firstName,
+            lastName,
+            handicap,
+            tee: selectedTee || undefined,
+          };
+          onSave(updatedPlayer);
+        } else {
+          throw new Error(response.status.message);
+        }
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update player');
+      setError(err instanceof Error ? err.message : 'Failed to save player');
       setIsSubmitting(false);
     }
   };
@@ -107,7 +145,9 @@ export function EditPlayerScreen({ player, game, groupId, onBack, onSave }: Edit
           >
             <ArrowLeft className="w-6 h-6" />
           </button>
-          <h2 className="text-2xl font-bold text-gray-900">Edit Player</h2>
+          <h2 className="text-2xl font-bold text-gray-900">
+            {isNewPlayer ? 'Add Player' : 'Edit Player'}
+          </h2>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -192,7 +232,7 @@ export function EditPlayerScreen({ player, game, groupId, onBack, onSave }: Edit
               className={`px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500
                 ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
-              Save Changes
+              {isSubmitting ? 'Saving...' : isNewPlayer ? 'Add Player' : 'Save Changes'}
             </button>
           </div>
         </form>

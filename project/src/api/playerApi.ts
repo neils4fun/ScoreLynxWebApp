@@ -208,4 +208,124 @@ export async function fetchTeesForCourse(courseId: string): Promise<GetTeesForCo
   }
 
   return response.json();
+}
+
+interface GroupPlayerListResponse {
+  status: {
+    code: number;
+    message: string;
+  };
+  players: Player[];
+}
+
+export async function fetchGroupPlayerList(gameId: string): Promise<GroupPlayerListResponse> {
+  const response = await fetch(`${API_BASE}/getGroupPlayerList`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      gameID: gameId,
+      appVersion: APP_VERSION,
+      source: APP_SOURCE,
+      deviceID: DEVICE_ID,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch group players');
+  }
+
+  return response.json();
+}
+
+interface AddGamePlayerByNameRequest {
+  gameID: string;
+  groupID: string;
+  firstName: string;
+  lastName: string;
+  handicap: number | null;
+  teeID: string;
+  didPay: number;
+  venmoName: string | null;
+  source?: string;
+  appVersion?: string;
+  deviceID?: string;
+}
+
+interface AddGamePlayerByNameResponse {
+  status: {
+    code: number;
+    message: string;
+  };
+  playerID: string;
+}
+
+export async function addGamePlayerByName(params: AddGamePlayerByNameRequest): Promise<AddGamePlayerByNameResponse> {
+  try {
+    console.log('Adding player with params:', params);
+    
+    const response = await fetch(`${API_BASE}/addGamePlayerByName`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        ...params,
+        source: APP_SOURCE,
+        appVersion: APP_VERSION,
+        deviceID: DEVICE_ID,
+      }),
+    });
+
+    const data = await response.json();
+    console.log('API Response:', data);
+
+    if (!response.ok || data.status.code !== 0) {
+      throw new Error(data.status.message || 'Failed to add player to game');
+    }
+
+    return data;
+  } catch (err) {
+    console.error('Error adding player:', err);
+    throw err;
+  }
+}
+
+interface DeleteGamePlayerResponse {
+  status: {
+    code: number;
+    message: string;
+  };
+}
+
+export async function deleteGamePlayer(
+  playerId: string,
+  gameId: string
+): Promise<DeleteGamePlayerResponse> {
+  const response = await fetch(`${API_BASE}/deleteGamePlayer`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      playerID: playerId,
+      gameID: gameId,
+      source: APP_SOURCE,
+      appVersion: APP_VERSION,
+      deviceID: DEVICE_ID,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to delete player');
+  }
+
+  const data = await response.json();
+  
+  if (data.status.code !== 0) {
+    throw new Error(data.status.message || 'Failed to delete player');
+  }
+
+  return data;
 } 

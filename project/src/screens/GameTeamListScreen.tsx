@@ -64,15 +64,17 @@ export function GameTeamListScreen({ onBack, onEditPlayer, gameId }: GameTeamLis
           <ArrowLeft className="w-6 h-6" />
         </button>
         <h2 className="text-2xl font-bold text-gray-900 ml-4">Teams</h2>
-        <button
-          onClick={loadData}
-          disabled={isLoading}
-          className={`p-2 hover:bg-gray-100 rounded-full ml-24
-            ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}
-            transition-transform active:scale-95`}
-        >
-          <RotateCw className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
-        </button>
+        <div className="flex-1 flex justify-end">
+          <button
+            onClick={loadData}
+            disabled={isLoading}
+            className={`p-2 hover:bg-gray-100 rounded-full
+              ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}
+              transition-transform active:scale-95`}
+          >
+            <RotateCw className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
+          </button>
+        </div>
       </div>
 
       <div className="space-y-2">
