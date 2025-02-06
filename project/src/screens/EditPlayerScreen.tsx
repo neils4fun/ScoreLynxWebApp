@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { updatePlayer, addGamePlayerByName } from '../api/playerApi';
+import { addTeamPlayerByName } from '../api/teamApi';
 import { SelectTeeScreen } from './SelectTeeScreen';
 import type { Player, Tee } from '../types/player';
 import type { Game } from '../types/game';
@@ -9,6 +10,7 @@ interface EditPlayerScreenProps {
   player?: Player;
   game: Game;
   groupId: string;
+  teamId?: string;  // Optional teamId to determine context
   onBack: () => void;
   onSave: (updatedPlayer: Player) => void;
   defaultTee?: Tee | null;
@@ -18,7 +20,8 @@ interface EditPlayerScreenProps {
 export function EditPlayerScreen({ 
   player, 
   game, 
-  groupId, 
+  groupId,
+  teamId,
   onBack, 
   onSave,
   defaultTee,
@@ -39,29 +42,52 @@ export function EditPlayerScreen({
 
     try {
       if (isNewPlayer) {
-        // Add new player
-        const response = await addGamePlayerByName({
-          gameID: game.gameID,
-          groupID: groupId,
-          firstName,
-          lastName,
-          handicap: handicap ? parseInt(handicap, 10) : null,
-          teeID: selectedTee?.teeID || '',
-          didPay: 0,
-          venmoName: null,
-        });
+        let newPlayer: Player;
+        if (teamId) {
+          // Add new player to team
+          const response = await addTeamPlayerByName(teamId, {
+            firstName,
+            lastName,
+            handicap: handicap || null,
+            teeID: selectedTee?.teeID
+          });
+          
+          // Create a player object from the response
+          newPlayer = {
+            playerID: response.playerID,
+            firstName,
+            lastName,
+            handicap: handicap || null,
+            tee: selectedTee || undefined,
+            venmoName: null,
+            didPay: '0',
+            scores: []
+          };
+        } else {
+          // Add new player to game
+          const response = await addGamePlayerByName({
+            gameID: game.gameID,
+            groupID: groupId,
+            firstName,
+            lastName,
+            handicap: handicap ? parseInt(handicap, 10) : null,
+            teeID: selectedTee?.teeID || '',
+            didPay: 0,
+            venmoName: null,
+          });
 
-        // Create a player object from the response
-        const newPlayer: Player = {
-          playerID: response.playerID,
-          firstName,
-          lastName,
-          handicap: handicap || null,
-          tee: selectedTee || undefined,
-          venmoName: null,
-          didPay: '0',
-          scores: []
-        };
+          // Create a player object from the response
+          newPlayer = {
+            playerID: response.playerID,
+            firstName,
+            lastName,
+            handicap: handicap || null,
+            tee: selectedTee || undefined,
+            venmoName: null,
+            didPay: '0',
+            scores: []
+          };
+        }
         onSave(newPlayer);
       } else if (player) {
         // Update existing player

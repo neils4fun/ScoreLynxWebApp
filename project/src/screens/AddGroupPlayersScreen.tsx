@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ArrowLeft, RotateCw, Check } from 'lucide-react';
 import { fetchGroupPlayerList, addGamePlayerByName } from '../api/playerApi';
+import { addTeamPlayerByName } from '../api/teamApi';
 import type { Player } from '../types/player';
 
 interface AddGroupPlayersScreenProps {
@@ -8,9 +9,16 @@ interface AddGroupPlayersScreenProps {
   onAddPlayers: (players: Player[]) => void;
   gameId: string;
   groupId: string;
+  teamId?: string; // Optional teamId to determine context
 }
 
-export function AddGroupPlayersScreen({ onBack, onAddPlayers, gameId, groupId }: AddGroupPlayersScreenProps) {
+export function AddGroupPlayersScreen({ 
+  onBack, 
+  onAddPlayers, 
+  gameId, 
+  groupId,
+  teamId 
+}: AddGroupPlayersScreenProps) {
   const [players, setPlayers] = useState<Player[]>([]);
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(false);
@@ -55,30 +63,61 @@ export function AddGroupPlayersScreen({ onBack, onAddPlayers, gameId, groupId }:
     setError(null);
 
     try {
-      // Add each selected player to the game
-      const addPlayerPromises = selectedPlayers.map(async player => {
-        const handicapValue = player.handicap ? parseInt(player.handicap) : null;
-        const teeId = player.tee?.teeID || '';
+      if (teamId) {
+        // Team context: Add players to team
+        console.log('Adding players to team:', { teamId, players: selectedPlayers });
+        const results = await Promise.allSettled(
+          selectedPlayers.map(player => 
+            addTeamPlayerByName(teamId, {
+              firstName: player.firstName,
+              lastName: player.lastName,
+              handicap: player.handicap,
+              teeID: player.tee?.teeID
+            })
+          )
+        );
+        
+        // Check for any failures
+        const failures = results.filter(result => result.status === 'rejected');
+        if (failures.length > 0) {
+          const errors = failures.map(f => (f as PromiseRejectedResult).reason.message);
+          throw new Error(`Failed to add some players: ${errors.join(', ')}`);
+        }
+      } else {
+        // Game context: Add players to game
+        console.log('Adding players to game:', { gameId, players: selectedPlayers });
+        const results = await Promise.allSettled(
+          selectedPlayers.map(async player => {
+            const handicapValue = player.handicap ? parseInt(player.handicap) : null;
+            const teeId = player.tee?.teeID || '';
 
-        return await addGamePlayerByName({
-          gameID: gameId,
-          groupID: groupId,
-          firstName: player.firstName,
-          lastName: player.lastName,
-          handicap: handicapValue,
-          teeID: teeId,
-          didPay: parseInt(player.didPay) || 0,
-          venmoName: player.venmoName,
-        });
-      });
+            return await addGamePlayerByName({
+              gameID: gameId,
+              groupID: groupId,
+              firstName: player.firstName,
+              lastName: player.lastName,
+              handicap: handicapValue,
+              teeID: teeId,
+              didPay: parseInt(player.didPay) || 0,
+              venmoName: player.venmoName,
+            });
+          })
+        );
 
-      // Wait for all players to be added
-      await Promise.all(addPlayerPromises);
+        // Check for any failures
+        const failures = results.filter(result => result.status === 'rejected');
+        if (failures.length > 0) {
+          const errors = failures.map(f => (f as PromiseRejectedResult).reason.message);
+          throw new Error(`Failed to add some players: ${errors.join(', ')}`);
+        }
+      }
       
       // Call onAddPlayers with the selected players to trigger refresh
       onAddPlayers(selectedPlayers);
     } catch (err) {
+      console.error('Error adding players:', err);
       setError(err instanceof Error ? err.message : 'Failed to add players');
+    } finally {
       setIsAddingPlayers(false);
     }
   };

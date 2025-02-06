@@ -2,16 +2,16 @@ import { useState, useEffect } from 'react';
 import { ArrowLeft, RotateCw } from 'lucide-react';
 import { fetchTeamList } from '../api/teamApi';
 import type { Team } from '../types/team';
-import type { Player } from '../types/player';
+import type { Game } from '../types/game';
 import { TeamPlayerListScreen } from './TeamPlayerListScreen';
 
 interface GameTeamListScreenProps {
   onBack: () => void;
-  onEditPlayer: (player: Player) => void;
   gameId: string;
+  game: Game;
 }
 
-export function GameTeamListScreen({ onBack, onEditPlayer, gameId }: GameTeamListScreenProps) {
+export function GameTeamListScreen({ onBack, gameId, game }: GameTeamListScreenProps) {
   const [teams, setTeams] = useState<Team[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -39,9 +39,8 @@ export function GameTeamListScreen({ onBack, onEditPlayer, gameId }: GameTeamLis
     return (
       <TeamPlayerListScreen
         teamId={selectedTeam.teamID}
-        teamName={selectedTeam.teamName}
         onBack={() => setSelectedTeam(null)}
-        onEditPlayer={onEditPlayer}
+        game={game}
       />
     );
   }
