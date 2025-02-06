@@ -6,14 +6,16 @@ export interface GolfGroup {
 
 export interface Game {
   gameID: string;
+  groupID: string;
   name: string;
-  date: string;
+  courseID: string;
   courseName: string;
   teamPlayerType: 'Player' | 'Team' | 'Matchplay';
+  date: string;
+  status: string;
   gameKey: string;
   gameType: string;
   skinType: string;
-  courseID: string;
   teeName: string;
   round: string;
 }
