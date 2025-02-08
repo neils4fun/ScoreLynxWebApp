@@ -88,9 +88,6 @@ export function GameTeamListScreen({ onBack, gameId, game }: GameTeamListScreenP
               <span className="text-lg font-medium text-gray-900">
                 {team.teamName}
               </span>
-              <span className="text-sm text-gray-500">
-                {team.numPlayers} Players
-              </span>
             </div>
           </button>
         ))}

@@ -15,15 +15,7 @@ export interface TeamScore {
   playerID: string;
   firstName: string;
   lastName: string;
-  handicap?: string;
-  venmoName: string | null;
-  didPay: string;
-  tee?: {
-    teeID: string;
-    name: string;
-    slope: number;
-    rating: number;
-  };
+  handicap: number;
   scores: Score[];
 }
 

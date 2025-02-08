@@ -180,4 +180,67 @@ export async function addTeamPlayerByName(
       throw new Error('Unknown error occurred while adding team player');
     }
   }
+}
+
+interface TeamScoresResponse {
+  status: {
+    code: number;
+    message: string;
+  };
+  players: Array<{
+    playerID: string;
+    firstName: string;
+    lastName: string;
+    handicap?: string;
+    venmoName: string | null;
+    didPay: string;
+    tee?: {
+      teeID: string;
+      name: string;
+      slope: number;
+      rating: number;
+    };
+    scores: Array<{
+      scoreID?: string;
+      holeNumber: number;
+      grossScore: number;
+      netScore: number;
+    }>;
+  }>;
+}
+
+export async function fetchTeamScores(
+  gameId: string,
+  teamId: string
+): Promise<TeamScoresResponse> {
+  try {
+    const response = await fetch(`${API_BASE}/getTeamScores`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        gameID: gameId,
+        teamID: teamId,
+        source: APP_SOURCE,
+        appVersion: APP_VERSION,
+        deviceID: DEVICE_ID,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch team scores');
+    }
+
+    const data = await response.json();
+    
+    if (data.status.code !== 0) {
+      throw new Error(data.status.message || 'Failed to fetch team scores');
+    }
+
+    return data;
+  } catch (err) {
+    console.error('Error fetching team scores:', err);
+    throw err;
+  }
 } 

@@ -1,7 +1,7 @@
-import { useState } from 'react';
-import type { TeamLeader } from '../../types/leaderboard';
+import React, { useState } from 'react';
+import { useGame } from '../../hooks/useGame';
 import { TeamScorecardScreen } from '../../screens/TeamScorecardScreen';
-import { useGame } from '../../context/GameContext';
+import type { TeamLeader } from '../../types/leaderboard';
 
 interface TeamLeaderboardProps {
   leaders: TeamLeader[][];
@@ -19,15 +19,15 @@ export function TeamLeaderboard({ leaders, headers, gameTypes, isLoading, error 
   } | null>(null);
 
   if (isLoading) {
-    return <p className="text-gray-600 text-center">Loading...</p>;
+    return <div className="text-center py-8">Loading team data...</div>;
   }
 
   if (error) {
-    return <p className="text-red-600 text-center">{error}</p>;
+    return <div className="text-center py-8 text-red-600">{error}</div>;
   }
 
   if (!leaders || !Array.isArray(leaders) || leaders.length === 0 || !leaders[0]?.length) {
-    return <p className="text-gray-600 text-center">No team data available</p>;
+    return <div className="text-center py-8">No team data available</div>;
   }
 
   if (selectedTeam && selectedGame) {
@@ -54,11 +54,11 @@ export function TeamLeaderboard({ leaders, headers, gameTypes, isLoading, error 
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    {(headers?.[groupIndex] || ['Team', 'Score', 'Count', 'Thru']).map((header, index) => (
+                    {(headers?.[groupIndex] || ['Team', 'Net', 'Total', 'Thru']).map((header, index) => (
                       <th 
                         key={header}
                         className={`px-4 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap ${
-                          index === 0 ? 'text-left' : 'text-right'
+                          index === 0 ? 'text-left' : 'text-center'
                         }`}
                       >
                         {header}
@@ -66,7 +66,7 @@ export function TeamLeaderboard({ leaders, headers, gameTypes, isLoading, error 
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className="bg-white divide-y divide-gray-200">
                   {leaderGroup.map((team, index) => (
                     <tr 
                       key={`${team.teamID}-${groupIndex}`} 
@@ -79,13 +79,13 @@ export function TeamLeaderboard({ leaders, headers, gameTypes, isLoading, error 
                       <td className="px-4 py-2 text-sm text-gray-900 whitespace-nowrap">
                         {team.teamName}
                       </td>
-                      <td className="px-4 py-2 text-sm text-gray-900 whitespace-nowrap text-right">
+                      <td className="px-4 py-2 text-sm text-center font-medium text-blue-600 whitespace-nowrap">
+                        {team.relativeScore > 0 ? `+${team.relativeScore}` : team.relativeScore}
+                      </td>
+                      <td className="px-4 py-2 text-sm text-center whitespace-nowrap">
                         {team.absoluteScore}
                       </td>
-                      <td className="px-4 py-2 text-sm text-gray-900 whitespace-nowrap text-right">
-                        {team.relativeScore}
-                      </td>
-                      <td className="px-4 py-2 text-sm text-gray-900 whitespace-nowrap text-right">
+                      <td className="px-4 py-2 text-sm text-center whitespace-nowrap">
                         {team.holesPlayed}
                       </td>
                     </tr>
@@ -98,4 +98,4 @@ export function TeamLeaderboard({ leaders, headers, gameTypes, isLoading, error 
       ))}
     </div>
   );
-}
+} 
