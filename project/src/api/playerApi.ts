@@ -328,4 +328,65 @@ export async function deleteGamePlayer(
   }
 
   return data;
+}
+
+interface PlayerScoresResponse {
+  status: {
+    code: number;
+    message: string;
+  };
+  player: {
+    playerID: string;
+    firstName: string;
+    lastName: string;
+    handicap: string;
+    tee: {
+      teeID: string;
+      name: string;
+      slope: number;
+      rating: number;
+    };
+    scores: Array<{
+      scoreID: string;
+      holeNumber: number;
+      grossScore: number;
+      netScore: number;
+    }>;
+  };
+}
+
+export async function fetchPlayerScores(
+  gameId: string,
+  playerId: string
+): Promise<PlayerScoresResponse> {
+  try {
+    const response = await fetch(`${API_BASE}/getPlayerScores`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        gameID: gameId,
+        playerID: playerId,
+        source: APP_SOURCE,
+        appVersion: APP_VERSION,
+        deviceID: DEVICE_ID,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch player scores');
+    }
+
+    const data = await response.json();
+    
+    if (data.status.code !== 0) {
+      throw new Error(data.status.message || 'Failed to fetch player scores');
+    }
+
+    return data;
+  } catch (err) {
+    console.error('Error fetching player scores:', err);
+    throw err;
+  }
 } 
