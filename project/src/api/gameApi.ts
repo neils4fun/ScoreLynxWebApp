@@ -2,6 +2,10 @@ import { APIResponse } from '../types/common';
 import { GolfGroup, Game } from '../types/game';
 import { API_BASE, APP_VERSION, APP_SOURCE, DEVICE_ID } from './config';
 
+interface GameListResponse extends APIResponse<Game> {
+  games: Game[];
+}
+
 export async function fetchGolfGroups(searchTerm: string = 'test'): Promise<GolfGroup[]> {
   try {
     const response = await fetch(`${API_BASE}/getGroupList`, {
@@ -53,7 +57,7 @@ export async function fetchGroupGames(groupId: string): Promise<Game[]> {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const data = await response.json() as APIResponse<Game>;
+    const data = await response.json() as GameListResponse;
     
     if (data.status.code !== 0) {
       throw new Error(data.status.message);

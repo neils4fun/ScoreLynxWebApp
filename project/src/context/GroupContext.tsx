@@ -89,7 +89,7 @@ export function GroupProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function useGroup() {
+export function useGroup(): GroupContextType {
   const context = useContext(GroupContext);
   if (context === undefined) {
     throw new Error('useGroup must be used within a GroupProvider');
