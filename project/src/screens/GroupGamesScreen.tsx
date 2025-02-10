@@ -51,8 +51,19 @@ export function GroupGamesScreen({
 
   const handleDeleteGame = async (e: React.MouseEvent, game: Game) => {
     e.stopPropagation();
-    // TODO: Implement delete functionality
-    console.log('Delete game:', game.gameID);
+    setDeletingGameIds(prev => new Set(prev).add(game.gameID));
+    
+    try {
+      // TODO: Implement delete functionality
+      console.log('Delete game:', game.gameID);
+      await new Promise(resolve => setTimeout(resolve, 500)); // Temporary delay to show loading state
+    } finally {
+      setDeletingGameIds(prev => {
+        const next = new Set(prev);
+        next.delete(game.gameID);
+        return next;
+      });
+    }
   };
 
   return (
