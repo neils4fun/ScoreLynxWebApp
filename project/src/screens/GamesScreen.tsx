@@ -4,6 +4,7 @@ import { GroupGamesScreen } from './GroupGamesScreen';
 import { GamePlayersScreen } from './GamePlayersScreen';
 import { GameTeamsScreen } from './GameTeamsScreen';
 import { NewGameScreen } from './NewGameScreen';
+import { EditGameScreen } from './EditGameScreen';
 import { useGroup } from '../context/GroupContext';
 import type { GolfGroup, Game } from '../types/game';
 
@@ -16,6 +17,7 @@ export default function GamesScreen() {
     clearGroup
   } = useGroup();
   const [isCreatingGame, setIsCreatingGame] = useState(false);
+  const [editingGame, setEditingGame] = useState<Game | null>(null);
 
   const handleGroupSelect = (group: GolfGroup) => {
     setSelectedGroup(group);
@@ -28,6 +30,15 @@ export default function GamesScreen() {
   const handleBack = () => {
     clearGroup();
   };
+
+  if (editingGame) {
+    return (
+      <EditGameScreen
+        game={editingGame}
+        onBack={() => setEditingGame(null)}
+      />
+    );
+  }
 
   if (isCreatingGame) {
     return <NewGameScreen onBack={() => setIsCreatingGame(false)} />;
@@ -57,6 +68,7 @@ export default function GamesScreen() {
         onBack={handleBack}
         onGameSelect={handleGameSelect}
         onCreateGame={() => setIsCreatingGame(true)}
+        onEditGame={(game) => setEditingGame(game)}
       />
     );
   }

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, RotateCw } from 'lucide-react';
+import { ArrowLeft, RotateCw, Pencil, Trash2 } from 'lucide-react';
 import { fetchGroupGames } from '../api/gameApi';
 import { GameCard } from '../components/game/GameCard';
 import type { GolfGroup, Game } from '../types/game';
@@ -9,17 +9,20 @@ interface GroupGamesScreenProps {
   onBack: () => void;
   onGameSelect: (game: Game) => void;
   onCreateGame: () => void;
+  onEditGame?: (game: Game) => void;
 }
 
 export function GroupGamesScreen({ 
   group, 
   onBack, 
   onGameSelect,
-  onCreateGame 
+  onCreateGame,
+  onEditGame 
 }: GroupGamesScreenProps) {
   const [games, setGames] = useState<Game[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [deletingGameIds, setDeletingGameIds] = useState<Set<string>>(new Set());
 
   const loadGames = async () => {
     setIsLoading(true);
@@ -38,6 +41,19 @@ export function GroupGamesScreen({
   useEffect(() => {
     loadGames();
   }, [group.groupID]);
+
+  const handleEditGame = (e: React.MouseEvent, game: Game) => {
+    e.stopPropagation();
+    if (onEditGame) {
+      onEditGame(game);
+    }
+  };
+
+  const handleDeleteGame = async (e: React.MouseEvent, game: Game) => {
+    e.stopPropagation();
+    // TODO: Implement delete functionality
+    console.log('Delete game:', game.gameID);
+  };
 
   return (
     <div className="p-4">
@@ -84,11 +100,37 @@ export function GroupGamesScreen({
         ) : (
           <div className="space-y-2">
             {games.map((game) => (
-              <div key={game.gameID} onClick={() => onGameSelect(game)} className="cursor-pointer">
-                <GameCard
-                  game={game}
-                  isSelected={false}
-                />
+              <div 
+                key={game.gameID} 
+                className="flex items-center space-x-2"
+              >
+                <div 
+                  onClick={() => onGameSelect(game)}
+                  className="flex-1 cursor-pointer"
+                >
+                  <GameCard
+                    game={game}
+                    isSelected={false}
+                  />
+                </div>
+                <div className="flex flex-col space-y-1 py-2">
+                  <button
+                    onClick={(e) => handleEditGame(e, game)}
+                    className="p-1.5 hover:bg-gray-100 rounded-full text-gray-500 hover:text-blue-600
+                      bg-white shadow-sm transition-colors"
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={(e) => handleDeleteGame(e, game)}
+                    disabled={deletingGameIds.has(game.gameID)}
+                    className={`p-1.5 hover:bg-gray-100 rounded-full text-gray-500 hover:text-red-600
+                      bg-white shadow-sm transition-colors
+                      ${deletingGameIds.has(game.gameID) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             ))}
           </div>
