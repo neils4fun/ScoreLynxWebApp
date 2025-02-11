@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { ArrowLeft, ChevronRight } from 'lucide-react';
 import type { Game } from '../types/game';
+import type { GameMeta } from '../types/gameMeta';
 import DatePicker from "react-datepicker";
+import { GameTypeSelector } from '../components/game/GameTypeSelector';
 type DatePickerComponent = typeof DatePicker;
 const ReactDatePicker = DatePicker as DatePickerComponent;
 import "react-datepicker/dist/react-datepicker.css";
@@ -25,6 +27,7 @@ interface GameSettings {
 export function GameFormScreen({ onBack, game }: GameFormScreenProps) {
   const isEditMode = !!game;
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showGameTypeSelector, setShowGameTypeSelector] = useState(false);
 
   const [gameSettings, setGameSettings] = useState<GameSettings>({
     gameDate: new Date(),  // Initialize with current date
@@ -97,6 +100,14 @@ export function GameFormScreen({ onBack, game }: GameFormScreenProps) {
     });
   };
 
+  const handleGameTypeSelect = (selectedGameType: GameMeta) => {
+    setGameSettings(prev => ({
+      ...prev,
+      gameType: selectedGameType.type
+    }));
+    setShowGameTypeSelector(false);
+  };
+
   return (
     <div className="max-w-md mx-auto h-screen flex flex-col">
       {/* Fixed Header */}
@@ -136,9 +147,23 @@ export function GameFormScreen({ onBack, game }: GameFormScreenProps) {
                 </div>
               </div>
 
+              {/* Game Type Row */}
+              <div className="flex items-center justify-between px-4 py-3">
+                <span className="text-base">Game Type:</span>
+                <div 
+                  className="flex items-center text-gray-500 cursor-pointer"
+                  onClick={() => setShowGameTypeSelector(true)}
+                >
+                  <span className={gameSettings.gameType ? 'text-black' : 'text-gray-400'}>
+                    {gameSettings.gameType || 'Select Game Type'}
+                  </span>
+                  <ChevronRight className="w-5 h-5 ml-2" />
+                </div>
+              </div>
+
               {/* Other settings rows */}
               {Object.entries(gameSettings).map(([key, value]) => {
-                if (key === 'gameDate') return null; // Skip gameDate as it's handled separately
+                if (key === 'gameDate' || key === 'gameType') return null;
                 return (
                   <div key={key} className="flex items-center justify-between px-4 py-3">
                     <span className="text-base">
@@ -208,6 +233,14 @@ export function GameFormScreen({ onBack, game }: GameFormScreenProps) {
             </button>
           </div>
         </div>
+      )}
+
+      {/* Game Type Selector */}
+      {showGameTypeSelector && (
+        <GameTypeSelector
+          onBack={() => setShowGameTypeSelector(false)}
+          onSelect={handleGameTypeSelect}
+        />
       )}
 
       {/* Fixed Button */}
