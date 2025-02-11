@@ -1,17 +1,33 @@
 import { useState, useEffect } from 'react';
 import { ArrowLeft, ChevronRight } from 'lucide-react';
 import type { Game } from '../types/game';
+import DatePicker from "react-datepicker";
+type DatePickerComponent = typeof DatePicker;
+const ReactDatePicker = DatePicker as DatePickerComponent;
+import "react-datepicker/dist/react-datepicker.css";
 
 interface GameFormScreenProps {
   onBack: () => void;
   game?: Game; // Optional game prop for edit mode
 }
 
+interface GameSettings {
+  gameDate: Date;
+  gameType: string;
+  skinsType: string;
+  course: string;
+  gameAnte: string;
+  skinsAnte: string;
+  payouts: string;
+  mirrorGame: string;
+}
+
 export function GameFormScreen({ onBack, game }: GameFormScreenProps) {
   const isEditMode = !!game;
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
-  const [gameSettings, setGameSettings] = useState({
-    gameDate: '',
+  const [gameSettings, setGameSettings] = useState<GameSettings>({
+    gameDate: new Date(),  // Initialize with current date
     gameType: '',
     skinsType: '',
     course: '',
@@ -37,11 +53,11 @@ export function GameFormScreen({ onBack, game }: GameFormScreenProps) {
   useEffect(() => {
     if (game) {
       setGameSettings({
-        gameDate: game.date || '',
+        gameDate: game.date ? new Date(game.date) : new Date(),
         gameType: game.gameType || '',
         skinsType: game.skinType || '',
         course: game.courseName || '',
-        gameAnte: '',  // Add these fields to Game type if they exist
+        gameAnte: '',
         skinsAnte: '',
         payouts: 'No Payouts Set',
         mirrorGame: ''
@@ -63,6 +79,22 @@ export function GameFormScreen({ onBack, game }: GameFormScreenProps) {
       console.log('Add game clicked', { gameSettings, gameOptions });
       // TODO: Implement create logic
     }
+  };
+
+  const handleDateChange = (date: Date | null) => {
+    if (date) {
+      setGameSettings(prev => ({ ...prev, gameDate: date }));
+      setShowDatePicker(false);
+    }
+  };
+
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
   };
 
   return (
@@ -89,32 +121,52 @@ export function GameFormScreen({ onBack, game }: GameFormScreenProps) {
           {/* Game Settings Section */}
           <div className="mb-6">
             <div className="bg-gray-100 px-4 py-2">
-              <h2 className="text-lg">Game Settings</h2>
+              <h2 className="text-lg">Game Settings:</h2>
             </div>
             <div className="bg-white divide-y divide-gray-200">
-              {Object.entries(gameSettings).map(([key, value]) => (
-                <div key={key} className="flex items-center justify-between px-4 py-3">
-                  <span className="text-base">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
-                  <div className="flex items-center text-gray-500">
-                    <span className={value ? 'text-black' : 'text-gray-400'}>
-                      {value || `Select ${key.replace(/([A-Z])/g, ' $1').trim()}`}
-                    </span>
-                    <ChevronRight className="w-5 h-5 ml-2" />
-                  </div>
+              {/* Game Date Row */}
+              <div className="flex items-center justify-between px-4 py-3">
+                <span className="text-base">Game Date:</span>
+                <div 
+                  className="flex items-center text-gray-500 cursor-pointer"
+                  onClick={() => setShowDatePicker(true)}
+                >
+                  <span className="text-black">{formatDate(gameSettings.gameDate)}</span>
+                  <ChevronRight className="w-5 h-5 ml-2" />
                 </div>
-              ))}
+              </div>
+
+              {/* Other settings rows */}
+              {Object.entries(gameSettings).map(([key, value]) => {
+                if (key === 'gameDate') return null; // Skip gameDate as it's handled separately
+                return (
+                  <div key={key} className="flex items-center justify-between px-4 py-3">
+                    <span className="text-base">
+                      {key.replace(/([A-Z])/g, ' $1').trim().replace(/^./, str => str.toUpperCase()) + ':'}
+                    </span>
+                    <div className="flex items-center text-gray-500">
+                      <span className={value ? 'text-black' : 'text-gray-400'}>
+                        {value || `Select ${key.replace(/([A-Z])/g, ' $1').trim()}`}
+                      </span>
+                      <ChevronRight className="w-5 h-5 ml-2" />
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
           {/* Game Options Section */}
           <div className="mb-20">
             <div className="bg-gray-100 px-4 py-2">
-              <h2 className="text-lg">Game Options</h2>
+              <h2 className="text-lg">Game Options:</h2>
             </div>
             <div className="bg-white divide-y divide-gray-200">
               {Object.entries(gameOptions).map(([key, value]) => (
                 <div key={key} className="flex items-center justify-between px-4 py-3">
-                  <span className="text-base">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
+                  <span className="text-base">
+                    {key.replace(/([A-Z])/g, ' $1').trim().replace(/^./, str => str.toUpperCase()) + ':'}
+                  </span>
                   {typeof value === 'boolean' ? (
                     <div 
                       className={`w-12 h-7 rounded-full relative ${
@@ -136,6 +188,27 @@ export function GameFormScreen({ onBack, game }: GameFormScreenProps) {
           </div>
         </div>
       </div>
+
+      {/* Date Picker Modal */}
+      {showDatePicker && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-4 rounded-lg">
+            <ReactDatePicker
+              selected={gameSettings.gameDate}
+              onChange={handleDateChange}
+              inline
+              minDate={new Date()}
+              className="w-full"
+            />
+            <button
+              onClick={() => setShowDatePicker(false)}
+              className="w-full mt-4 py-2 bg-gray-200 rounded-lg"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Fixed Button */}
       <div className="fixed bottom-16 inset-x-0 max-w-md mx-auto p-4 bg-gray-100">

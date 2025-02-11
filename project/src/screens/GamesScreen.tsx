@@ -3,8 +3,7 @@ import { SelectGroupScreen } from './SelectGroupScreen';
 import { GroupGamesScreen } from './GroupGamesScreen';
 import { GamePlayersScreen } from './GamePlayersScreen';
 import { GameTeamsScreen } from './GameTeamsScreen';
-import { NewGameScreen } from './NewGameScreen';
-import { EditGameScreen } from './EditGameScreen';
+import { GameFormScreen } from './GameFormScreen';
 import { useGroup } from '../context/GroupContext';
 import type { GolfGroup, Game } from '../types/game';
 
@@ -33,7 +32,7 @@ export default function GamesScreen() {
 
   if (editingGame) {
     return (
-      <EditGameScreen
+      <GameFormScreen
         game={editingGame}
         onBack={() => setEditingGame(null)}
       />
@@ -41,7 +40,7 @@ export default function GamesScreen() {
   }
 
   if (isCreatingGame) {
-    return <NewGameScreen onBack={() => setIsCreatingGame(false)} />;
+    return <GameFormScreen onBack={() => setIsCreatingGame(false)} />;
   }
 
   if (selectedGame) {
