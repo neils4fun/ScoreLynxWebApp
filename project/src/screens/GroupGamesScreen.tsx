@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { ArrowLeft, RotateCw, Pencil, Trash2 } from 'lucide-react';
 import { fetchGroupGames } from '../api/gameApi';
 import { GameCard } from '../components/game/GameCard';
+import { WeatherIcon } from '../components/game/WeatherIcon';
 import type { GolfGroup, Game } from '../types/game';
 
 interface GroupGamesScreenProps {
@@ -64,6 +65,22 @@ export function GroupGamesScreen({
         return next;
       });
     }
+  };
+
+  const isGameEligibleForWeather = (game: Game) => {
+    // Parse date from gameKey (YYYYMMDD format)
+    const year = parseInt(game.gameKey.substring(0, 4));
+    const month = parseInt(game.gameKey.substring(4, 6)) - 1; // Months are 0-based
+    const day = parseInt(game.gameKey.substring(6, 8));
+    
+    const gameDate = new Date(year, month, day);
+    const today = new Date();
+    
+    // Reset time portion for date comparison
+    gameDate.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+    
+    return gameDate >= today;
   };
 
   return (
@@ -141,6 +158,17 @@ export function GroupGamesScreen({
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
+                  {isGameEligibleForWeather(game) && (
+                    <WeatherIcon
+                      city="Charlotte"
+                      state="NC"
+                      date={new Date(
+                        parseInt(game.gameKey.substring(0, 4)),
+                        parseInt(game.gameKey.substring(4, 6)) - 1,
+                        parseInt(game.gameKey.substring(6, 8))
+                      )}
+                    />
+                  )}
                 </div>
               </div>
             ))}

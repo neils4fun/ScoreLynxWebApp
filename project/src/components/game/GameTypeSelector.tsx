@@ -12,7 +12,6 @@ export function GameTypeSelector({ onBack, onSelect }: GameTypeSelectorProps) {
   const [gameTypes, setGameTypes] = useState<GameMeta[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [selectedType, setSelectedType] = useState<GameMeta | null>(null);
   const [showDescription, setShowDescription] = useState<string | null>(null);
 
   useEffect(() => {

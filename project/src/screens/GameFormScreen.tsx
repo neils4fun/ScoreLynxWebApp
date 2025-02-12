@@ -3,12 +3,16 @@ import { ArrowLeft, ChevronRight } from 'lucide-react';
 import type { Game } from '../types/game';
 import type { GameMeta } from '../types/gameMeta';
 import type { SkinsMeta } from '../types/skinsMeta';
-import DatePicker from "react-datepicker";
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import dayjs from 'dayjs';
 import { GameTypeSelector } from '../components/game/GameTypeSelector';
 import { SkinsTypeSelector } from '../components/game/SkinsTypeSelector';
-type DatePickerComponent = typeof DatePicker;
-const ReactDatePicker = DatePicker as DatePickerComponent;
-import "react-datepicker/dist/react-datepicker.css";
+
+// Create a theme instance
+const theme = createTheme();
 
 interface GameFormScreenProps {
   onBack: () => void;
@@ -87,9 +91,9 @@ export function GameFormScreen({ onBack, game }: GameFormScreenProps) {
     }
   };
 
-  const handleDateChange = (date: Date | null) => {
+  const handleDateChange = (date: dayjs.Dayjs | null) => {
     if (date) {
-      setGameSettings(prev => ({ ...prev, gameDate: date }));
+      setGameSettings(prev => ({ ...prev, gameDate: date.toDate() }));
       setShowDatePicker(false);
     }
   };
@@ -243,13 +247,21 @@ export function GameFormScreen({ onBack, game }: GameFormScreenProps) {
       {showDatePicker && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-4 rounded-lg">
-            <ReactDatePicker
-              selected={gameSettings.gameDate}
-              onChange={handleDateChange}
-              inline
-              minDate={new Date()}
-              className="w-full"
-            />
+            <ThemeProvider theme={theme}>
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <DatePicker
+                  value={dayjs(gameSettings.gameDate)}
+                  onChange={handleDateChange}
+                  format="MM/DD/YYYY"
+                  slotProps={{
+                    textField: {
+                      className: "w-full p-2 border rounded",
+                      placeholder: "Select date"
+                    }
+                  }}
+                />
+              </LocalizationProvider>
+            </ThemeProvider>
             <button
               onClick={() => setShowDatePicker(false)}
               className="w-full mt-4 py-2 bg-gray-200 rounded-lg"
