@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { ArrowLeft, ChevronRight } from 'lucide-react';
 import type { Game } from '../types/game';
 import type { GameMeta } from '../types/gameMeta';
+import type { SkinsMeta } from '../types/skinsMeta';
 import DatePicker from "react-datepicker";
 import { GameTypeSelector } from '../components/game/GameTypeSelector';
+import { SkinsTypeSelector } from '../components/game/SkinsTypeSelector';
 type DatePickerComponent = typeof DatePicker;
 const ReactDatePicker = DatePicker as DatePickerComponent;
 import "react-datepicker/dist/react-datepicker.css";
@@ -28,6 +30,7 @@ export function GameFormScreen({ onBack, game }: GameFormScreenProps) {
   const isEditMode = !!game;
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showGameTypeSelector, setShowGameTypeSelector] = useState(false);
+  const [showSkinsTypeSelector, setShowSkinsTypeSelector] = useState(false);
 
   const [gameSettings, setGameSettings] = useState<GameSettings>({
     gameDate: new Date(),  // Initialize with current date
@@ -108,6 +111,14 @@ export function GameFormScreen({ onBack, game }: GameFormScreenProps) {
     setShowGameTypeSelector(false);
   };
 
+  const handleSkinsTypeSelect = (selectedSkinsType: SkinsMeta) => {
+    setGameSettings(prev => ({
+      ...prev,
+      skinsType: selectedSkinsType.type
+    }));
+    setShowSkinsTypeSelector(false);
+  };
+
   return (
     <div className="max-w-md mx-auto h-screen flex flex-col">
       {/* Fixed Header */}
@@ -161,9 +172,23 @@ export function GameFormScreen({ onBack, game }: GameFormScreenProps) {
                 </div>
               </div>
 
+              {/* Skins Type Row */}
+              <div className="flex items-center justify-between px-4 py-3">
+                <span className="text-base">Skins Type:</span>
+                <div 
+                  className="flex items-center text-gray-500 cursor-pointer"
+                  onClick={() => setShowSkinsTypeSelector(true)}
+                >
+                  <span className={gameSettings.skinsType ? 'text-black' : 'text-gray-400'}>
+                    {gameSettings.skinsType || 'Select Skins Type'}
+                  </span>
+                  <ChevronRight className="w-5 h-5 ml-2" />
+                </div>
+              </div>
+
               {/* Other settings rows */}
               {Object.entries(gameSettings).map(([key, value]) => {
-                if (key === 'gameDate' || key === 'gameType') return null;
+                if (key === 'gameDate' || key === 'gameType' || key === 'skinsType') return null;
                 return (
                   <div key={key} className="flex items-center justify-between px-4 py-3">
                     <span className="text-base">
@@ -240,6 +265,14 @@ export function GameFormScreen({ onBack, game }: GameFormScreenProps) {
         <GameTypeSelector
           onBack={() => setShowGameTypeSelector(false)}
           onSelect={handleGameTypeSelect}
+        />
+      )}
+
+      {/* Skins Type Selector */}
+      {showSkinsTypeSelector && (
+        <SkinsTypeSelector
+          onBack={() => setShowSkinsTypeSelector(false)}
+          onSelect={handleSkinsTypeSelect}
         />
       )}
 

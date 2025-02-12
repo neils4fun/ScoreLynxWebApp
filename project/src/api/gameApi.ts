@@ -2,6 +2,7 @@ import { APIResponse } from '../types/common';
 import { GolfGroup, Game } from '../types/game';
 import { GameMetaResponse } from '../types/gameMeta';
 import { API_BASE, APP_VERSION, APP_SOURCE, DEVICE_ID } from './config';
+import type { SkinsMetaResponse } from '../types/skinsMeta';
 
 interface GameListResponse extends APIResponse<Game> {
   games: Game[];
@@ -98,6 +99,37 @@ export async function fetchGameMetaList(): Promise<GameMetaResponse> {
     return data;
   } catch (error) {
     console.error('Error fetching game meta list:', error);
+    throw error;
+  }
+}
+
+export async function fetchSkinsMetaList(): Promise<SkinsMetaResponse> {
+  try {
+    const response = await fetch(`${API_BASE}/getSkinsMetaList`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ 
+        appVersion: APP_VERSION,
+        deviceID: DEVICE_ID,
+        source: APP_SOURCE
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json() as SkinsMetaResponse;
+    
+    if (data.status.code !== 0) {
+      throw new Error(data.status.message);
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error fetching skins meta list:', error);
     throw error;
   }
 }
