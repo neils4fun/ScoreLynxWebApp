@@ -10,6 +10,7 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import dayjs from 'dayjs';
 import { GameTypeSelector } from '../components/game/GameTypeSelector';
 import { SkinsTypeSelector } from '../components/game/SkinsTypeSelector';
+import { CourseSelector } from '../components/game/CourseSelector';
 
 // Create a theme instance
 const theme = createTheme();
@@ -24,6 +25,8 @@ interface GameSettings {
   gameType: string;
   skinsType: string;
   course: string;
+  courseId: string;  // Hidden field for API
+  teeId: string;     // Hidden field for API
   gameAnte: string;
   skinsAnte: string;
   payouts: string;
@@ -35,12 +38,15 @@ export function GameFormScreen({ onBack, game }: GameFormScreenProps) {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showGameTypeSelector, setShowGameTypeSelector] = useState(false);
   const [showSkinsTypeSelector, setShowSkinsTypeSelector] = useState(false);
+  const [showCourseSelector, setShowCourseSelector] = useState(false);
 
   const [gameSettings, setGameSettings] = useState<GameSettings>({
-    gameDate: new Date(),  // Initialize with current date
+    gameDate: new Date(),
     gameType: '',
     skinsType: '',
     course: '',
+    courseId: '',  // Hidden field
+    teeId: '',     // Hidden field
     gameAnte: '',
     skinsAnte: '',
     payouts: 'No Payouts Set',
@@ -67,6 +73,8 @@ export function GameFormScreen({ onBack, game }: GameFormScreenProps) {
         gameType: game.gameType || '',
         skinsType: game.skinType || '',
         course: game.courseName || '',
+        courseId: game.courseID || '',
+        teeId: '',
         gameAnte: '',
         skinsAnte: '',
         payouts: 'No Payouts Set',
@@ -123,6 +131,16 @@ export function GameFormScreen({ onBack, game }: GameFormScreenProps) {
     setShowSkinsTypeSelector(false);
   };
 
+  const handleCourseSelect = (courseId: string, courseName: string, teeId: string, teeName: string) => {
+    setGameSettings(prev => ({
+      ...prev,
+      course: `${courseName} - ${teeName}`,
+      courseId: courseId,
+      teeId: teeId
+    }));
+    setShowCourseSelector(false);
+  };
+
   return (
     <div className="max-w-md mx-auto h-screen flex flex-col">
       {/* Fixed Header */}
@@ -147,66 +165,41 @@ export function GameFormScreen({ onBack, game }: GameFormScreenProps) {
           {/* Game Settings Section */}
           <div className="mb-6">
             <div className="bg-gray-100 px-4 py-2">
-              <h2 className="text-lg">Game Settings:</h2>
+              <h2 className="text-lg">Game Settings</h2>
             </div>
             <div className="bg-white divide-y divide-gray-200">
-              {/* Game Date Row */}
-              <div className="flex items-center justify-between px-4 py-3">
-                <span className="text-base">Game Date:</span>
-                <div 
-                  className="flex items-center text-gray-500 cursor-pointer"
-                  onClick={() => setShowDatePicker(true)}
-                >
-                  <span className="text-black">{formatDate(gameSettings.gameDate)}</span>
-                  <ChevronRight className="w-5 h-5 ml-2" />
-                </div>
-              </div>
-
-              {/* Game Type Row */}
-              <div className="flex items-center justify-between px-4 py-3">
-                <span className="text-base">Game Type:</span>
-                <div 
-                  className="flex items-center text-gray-500 cursor-pointer"
-                  onClick={() => setShowGameTypeSelector(true)}
-                >
-                  <span className={gameSettings.gameType ? 'text-black' : 'text-gray-400'}>
-                    {gameSettings.gameType || 'Select Game Type'}
+              {Object.entries(gameSettings)
+                .filter(([key]) => !['courseId', 'teeId'].includes(key)) // Hide these fields from UI
+                .map(([key, value]) => (
+                <div key={key} className="flex items-center justify-between px-4 py-3">
+                  <span className="text-base">
+                    {key.replace(/([A-Z])/g, ' $1').trim()
+                      .split(' ')
+                      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                      .join(' ') + ':'}
                   </span>
-                  <ChevronRight className="w-5 h-5 ml-2" />
-                </div>
-              </div>
-
-              {/* Skins Type Row */}
-              <div className="flex items-center justify-between px-4 py-3">
-                <span className="text-base">Skins Type:</span>
-                <div 
-                  className="flex items-center text-gray-500 cursor-pointer"
-                  onClick={() => setShowSkinsTypeSelector(true)}
-                >
-                  <span className={gameSettings.skinsType ? 'text-black' : 'text-gray-400'}>
-                    {gameSettings.skinsType || 'Select Skins Type'}
-                  </span>
-                  <ChevronRight className="w-5 h-5 ml-2" />
-                </div>
-              </div>
-
-              {/* Other settings rows */}
-              {Object.entries(gameSettings).map(([key, value]) => {
-                if (key === 'gameDate' || key === 'gameType' || key === 'skinsType') return null;
-                return (
-                  <div key={key} className="flex items-center justify-between px-4 py-3">
-                    <span className="text-base">
-                      {key.replace(/([A-Z])/g, ' $1').trim().replace(/^./, str => str.toUpperCase()) + ':'}
+                  <div 
+                    className="flex items-center text-gray-500 cursor-pointer"
+                    onClick={() => {
+                      if (key === 'gameDate') setShowDatePicker(true);
+                      if (key === 'gameType') setShowGameTypeSelector(true);
+                      if (key === 'skinsType') setShowSkinsTypeSelector(true);
+                      if (key === 'course') setShowCourseSelector(true);
+                    }}
+                  >
+                    <span className={value ? 'text-black' : 'text-gray-400'}>
+                      {key === 'gameDate' ? formatDate(value as Date) : (value || 
+                        key === 'course' ? 'Select Course/Tee' :
+                        `Select ${key.replace(/([A-Z])/g, ' $1').trim()
+                          .split(' ')
+                          .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                          .join(' ')}`
+                      )}
                     </span>
-                    <div className="flex items-center text-gray-500">
-                      <span className={value ? 'text-black' : 'text-gray-400'}>
-                        {value || `Select ${key.replace(/([A-Z])/g, ' $1').trim()}`}
-                      </span>
-                      <ChevronRight className="w-5 h-5 ml-2" />
-                    </div>
+                    <ChevronRight className="w-5 h-5 ml-2" />
                   </div>
-                );
-              })}
+                </div>
+              ))}
             </div>
           </div>
 
@@ -285,6 +278,14 @@ export function GameFormScreen({ onBack, game }: GameFormScreenProps) {
         <SkinsTypeSelector
           onBack={() => setShowSkinsTypeSelector(false)}
           onSelect={handleSkinsTypeSelect}
+        />
+      )}
+
+      {/* Course Selector */}
+      {showCourseSelector && (
+        <CourseSelector
+          onCancel={() => setShowCourseSelector(false)}
+          onSelect={handleCourseSelect}
         />
       )}
 

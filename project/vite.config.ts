@@ -11,8 +11,9 @@ export default defineConfig({
     proxy: {
       '/slp': {
         target: 'http://www.scorelynxpro.com',
-        changeOrigin: true
-      }
+        changeOrigin: true,
+        secure: false,
+      },
     },
     hmr: {
       overlay: false  // Disable the error overlay
