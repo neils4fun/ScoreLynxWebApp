@@ -11,9 +11,9 @@ import dayjs from 'dayjs';
 import { GameTypeSelector } from '../components/game/GameTypeSelector';
 import { SkinsTypeSelector } from '../components/game/SkinsTypeSelector';
 import { CourseSelector } from '../components/game/CourseSelector';
-import { addGame } from '../api/gameApi';
+import { addGame, updateGame } from '../api/gameApi';
 import { useGroup } from '../context/GroupContext';
-import { APP_VERSION, APP_SOURCE } from '../api/config';
+import { APP_VERSION, APP_SOURCE, DEVICE_ID } from '../api/config';
 
 // Create a theme instance
 const theme = createTheme();
@@ -51,6 +51,7 @@ interface GameOptions {
 
 export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps) {
   const { selectedGroup } = useGroup();
+  const isEditMode = !!game;
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedGameMeta, setSelectedGameMeta] = useState<GameMeta | null>(null);
@@ -59,17 +60,35 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
   // Initialize form data from game prop if provided
   useEffect(() => {
     if (game) {
+      // Parse the game date from the gameKey (YYYYMMDD format)
+      const year = parseInt(game.gameKey.substring(0, 4));
+      const month = parseInt(game.gameKey.substring(4, 6)) - 1; // months are 0-based
+      const day = parseInt(game.gameKey.substring(6, 8));
+      const gameDate = new Date(year, month, day);
+
       setGameSettings({
-        gameDate: new Date(game.date),
+        gameDate,
         gameType: game.gameType,
         skinsType: game.skinType,
         course: `${game.courseName} - ${game.teeName}`,
         courseId: game.courseID,
         teeId: game.teeID,
-        gameAnte: '',
+        gameAnte: '',  // TODO: Add these fields to Game type if they exist
         skinsAnte: '',
         payouts: 'No Payouts Set',
         mirrorGame: ''
+      });
+
+      setGameOptions({
+        showNotifications: game.showNotifications === '1',
+        showPaceOfPlay: game.showPaceOfPlay === '1',
+        showLeaderboard: game.showLeaderBoard === '1',
+        showSkins: game.showSkins === '1',
+        showPayouts: game.showPayouts === '1',
+        useGroupHandicaps: game.useGroupHandicaps === '1',
+        strokeOffLowHandicap: game.strokeOffLow === '1',
+        percentHandicapHaircut: parseInt(game.percentHandicap) || 100,
+        addRakeToPayouts: game.addRakeToPayouts === '1'
       });
     }
   }, [game]);
@@ -113,6 +132,13 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
     );
   };
 
+  const formatDateToGameKey = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}${month}${day}`;
+  };
+
   const handleSubmit = async () => {
     if (!selectedGroup || !gameSettings.gameDate) return;
     
@@ -122,12 +148,12 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
     const gameKey = formatDateToGameKey(gameSettings.gameDate);
 
     try {
-      await addGame({
+      const params = {
         showPaceOfPlay: gameOptions.showPaceOfPlay ? 1 : 0,
         strokeOffLow: gameOptions.strokeOffLowHandicap ? 1 : 0,
         groupName: selectedGroup.groupName,
         useGroupHandicaps: gameOptions.useGroupHandicaps ? 1 : 0,
-        deviceID: 'Web',
+        deviceID: DEVICE_ID,
         showLeaderBoard: gameOptions.showLeaderboard ? 1 : 0,
         venmoName: null,
         percentHandicap: gameOptions.percentHandicapHaircut,
@@ -149,23 +175,54 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
         source: APP_SOURCE,
         skinsAnte: parseInt(gameSettings.skinsAnte) || 0,
         gameAnte: parseInt(gameSettings.gameAnte) || 0,
-        ownerDeviceID: 'SLPWeb',
         teamPlayerType: selectedGameMeta?.teamPlayerType || 'Player'
-      });
+      };
+
+      if (isEditMode && game) {
+        await updateGame({
+          gameID: game.gameID,
+          showPaceOfPlay: gameOptions.showPaceOfPlay ? 1 : 0,
+          strokeOffLow: gameOptions.strokeOffLowHandicap ? 1 : 0,
+          groupName: selectedGroup.groupName,
+          useGroupHandicaps: gameOptions.useGroupHandicaps ? 1 : 0,
+          deviceID: 'SLPWeb',
+          showLeaderBoard: gameOptions.showLeaderboard ? 1 : 0,
+          venmoName: null,
+          percentHandicap: gameOptions.percentHandicapHaircut,
+          addRakeToPayouts: gameOptions.addRakeToPayouts ? 1 : 0,
+          skinType: gameSettings.skinsType,
+          payouts: [],
+          appVersion: APP_VERSION,
+          gameKey: gameKey,
+          courseID: gameSettings.courseId,
+          mirrorGameID: null,
+          teeID: gameSettings.teeId,
+          showPayouts: gameOptions.showPayouts ? 1 : 0,
+          gameType: gameSettings.gameType,
+          tournamentName: gameKey,
+          showSkins: gameOptions.showSkins ? 1 : 0,
+          showNotifications: gameOptions.showNotifications ? 1 : 0,
+          round: 1,
+          teamCount: 0,
+          source: APP_SOURCE,
+          skinsAnte: parseInt(gameSettings.skinsAnte) || 0,
+          gameAnte: parseInt(gameSettings.gameAnte) || 0,
+          teamPlayerType: selectedGameMeta?.teamPlayerType || 'Player',
+          ownerDeviceID: 'SLPWeb'
+        });
+      } else {
+        await addGame({
+          ...params,
+          ownerDeviceID: 'SLPWeb'
+        });
+      }
 
       onSuccess?.();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to add game');
+      setError(err instanceof Error ? err.message : `Failed to ${isEditMode ? 'update' : 'add'} game`);
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const formatDateToGameKey = (date: Date): string => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}${month}${day}`;
   };
 
   const formatDate = (date: Date) => {
@@ -217,7 +274,7 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
             <span>Back</span>
           </button>
           <h1 className="text-xl font-bold text-center flex-1 mr-8">
-            Add Game
+            {isEditMode ? 'Update Game' : 'Add Game'}
           </h1>
         </div>
       </div>
@@ -331,10 +388,11 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
           className={`w-full py-3 rounded-lg font-medium
             ${isFormComplete() && !isSubmitting
               ? 'bg-blue-600 text-white hover:bg-blue-700'
-              : 'bg-gray-300 text-gray-500 cursor-not-allowed'}
-          `}
+              : 'bg-gray-400 text-white cursor-not-allowed'}`}
         >
-          {isSubmitting ? 'Adding Game...' : 'Add Game'}
+          {isSubmitting 
+            ? `${isEditMode ? 'Updating' : 'Adding'} Game...` 
+            : isEditMode ? 'Update Game' : 'Add Game'}
         </button>
       </div>
 

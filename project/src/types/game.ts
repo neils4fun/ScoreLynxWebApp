@@ -19,4 +19,13 @@ export interface Game {
   teeName: string;
   teeID: string;
   round: string;
+  showNotifications: string;
+  showPaceOfPlay: string;
+  showLeaderBoard: string;
+  showSkins: string;
+  showPayouts: string;
+  useGroupHandicaps: string;
+  strokeOffLow: string;
+  percentHandicap: string;
+  addRakeToPayouts: string;
 }

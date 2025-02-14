@@ -40,11 +40,22 @@ export default function GamesScreen() {
     }
   };
 
+  const handleGameUpdated = () => {
+    setEditingGame(null);
+    // Force a refresh of the games list by triggering a re-render of GroupGamesScreen
+    if (selectedGroup) {
+      const tempGroup = selectedGroup;
+      setSelectedGroup(null);
+      setTimeout(() => setSelectedGroup(tempGroup), 0);
+    }
+  };
+
   if (editingGame) {
     return (
       <GameFormScreen
         game={editingGame}
         onBack={() => setEditingGame(null)}
+        onSuccess={handleGameUpdated}
       />
     );
   }

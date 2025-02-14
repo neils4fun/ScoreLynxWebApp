@@ -84,6 +84,13 @@ const GameFormScreen = () => {
     );
   };
 
+  const formatDateToGameKey = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}${month}${day}`;
+  };
+
   const handleSubmit = async () => {
     if (!selectedGroup || !gameSettings.gameDate) return;
     
@@ -93,39 +100,72 @@ const GameFormScreen = () => {
     const gameKey = formatDateToGameKey(gameSettings.gameDate);
 
     try {
-      await addGame({
-        showPaceOfPlay: gameOptions.showPaceOfPlay ? 1 : 0,
-        strokeOffLow: gameOptions.strokeOffLowHandicap ? 1 : 0,
-        groupName: selectedGroup.groupName,
-        useGroupHandicaps: gameOptions.useGroupHandicaps ? 1 : 0,
-        deviceID: 'Web',
-        showLeaderBoard: gameOptions.showLeaderboard ? 1 : 0,
-        venmoName: null,
-        percentHandicap: gameOptions.percentHandicapHaircut,
-        addRakeToPayouts: gameOptions.addRakeToPayouts ? 1 : 0,
-        skinType: gameSettings.skinsType,
-        payouts: [],
-        appVersion: APP_VERSION,
-        gameKey,
-        courseID: gameSettings.courseId,
-        mirrorGameID: null,
-        teeID: gameSettings.teeID,
-        showPayouts: gameOptions.showPayouts ? 1 : 0,
-        gameType: gameSettings.gameType,
-        tournamentName: gameKey,
-        showSkins: gameOptions.showSkins ? 1 : 0,
-        showNotifications: gameOptions.showNotifications ? 1 : 0,
-        round: 1,
-        teamCount: 0,
-        source: APP_SOURCE,
-        gameAnte: parseInt(gameSettings.gameAnte) || 0,
-        ownerDeviceID: 'SLPWeb',
-        teamPlayerType: selectedGameMeta?.teamPlayerType || 'Player'
-      });
+      if (isEditMode && game) {
+        await updateGame({
+          gameID: game.gameID,
+          showPaceOfPlay: gameOptions.showPaceOfPlay ? 1 : 0,
+          strokeOffLow: gameOptions.strokeOffLowHandicap ? 1 : 0,
+          groupName: selectedGroup.groupName,
+          useGroupHandicaps: gameOptions.useGroupHandicaps ? 1 : 0,
+          deviceID: 'Web',
+          showLeaderBoard: gameOptions.showLeaderboard ? 1 : 0,
+          venmoName: null,
+          percentHandicap: gameOptions.percentHandicapHaircut,
+          addRakeToPayouts: gameOptions.addRakeToPayouts ? 1 : 0,
+          skinType: gameSettings.skinsType,
+          payouts: [],
+          appVersion: APP_VERSION,
+          gameKey: gameKey,
+          courseID: gameSettings.courseId,
+          mirrorGameID: null,
+          teeID: gameSettings.teeID,
+          showPayouts: gameOptions.showPayouts ? 1 : 0,
+          gameType: gameSettings.gameType,
+          tournamentName: gameKey,
+          showSkins: gameOptions.showSkins ? 1 : 0,
+          showNotifications: gameOptions.showNotifications ? 1 : 0,
+          round: 1,
+          teamCount: 0,
+          source: APP_SOURCE,
+          skinsAnte: parseInt(gameSettings.skinsAnte) || 0,
+          gameAnte: parseInt(gameSettings.gameAnte) || 0,
+          teamPlayerType: selectedGameMeta?.teamPlayerType || 'Player'
+        });
+      } else {
+        await addGame({
+          showPaceOfPlay: gameOptions.showPaceOfPlay ? 1 : 0,
+          strokeOffLow: gameOptions.strokeOffLowHandicap ? 1 : 0,
+          groupName: selectedGroup.groupName,
+          useGroupHandicaps: gameOptions.useGroupHandicaps ? 1 : 0,
+          deviceID: 'Web',
+          showLeaderBoard: gameOptions.showLeaderboard ? 1 : 0,
+          venmoName: null,
+          percentHandicap: gameOptions.percentHandicapHaircut,
+          addRakeToPayouts: gameOptions.addRakeToPayouts ? 1 : 0,
+          skinType: gameSettings.skinsType,
+          payouts: [],
+          appVersion: APP_VERSION,
+          gameKey,
+          courseID: gameSettings.courseId,
+          mirrorGameID: null,
+          teeID: gameSettings.teeID,
+          showPayouts: gameOptions.showPayouts ? 1 : 0,
+          gameType: gameSettings.gameType,
+          tournamentName: gameKey,
+          showSkins: gameOptions.showSkins ? 1 : 0,
+          showNotifications: gameOptions.showNotifications ? 1 : 0,
+          round: 1,
+          teamCount: 0,
+          source: APP_SOURCE,
+          gameAnte: parseInt(gameSettings.gameAnte) || 0,
+          ownerDeviceID: 'SLPWeb',
+          teamPlayerType: selectedGameMeta?.teamPlayerType || 'Player'
+        });
+      }
 
       onSuccess?.();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to add game');
+      setError(err instanceof Error ? err.message : 'Failed to update game');
     } finally {
       setIsSubmitting(false);
     }

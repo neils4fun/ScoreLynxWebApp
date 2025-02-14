@@ -50,6 +50,47 @@ interface DeleteGameResponse {
   };
 }
 
+interface UpdateGameRequest {
+  gameID: string;
+  showPaceOfPlay: number;
+  strokeOffLow: number;
+  groupName: string;
+  useGroupHandicaps: number;
+  deviceID: string;
+  showLeaderBoard: number;
+  venmoName: string | null;
+  percentHandicap: number;
+  addRakeToPayouts: number;
+  skinType: string;
+  payouts: any[];
+  appVersion: string;
+  gameKey: string;
+  courseID: string;
+  mirrorGameID: string | null;
+  teeID: string;
+  showPayouts: number;
+  gameType: string;
+  tournamentName: string;
+  showSkins: number;
+  showNotifications: number;
+  round: number;
+  teamCount: number;
+  source: string;
+  skinsAnte: number;
+  gameAnte: number;
+  teamPlayerType: string;
+  ownerDeviceID: string;
+  action?: string;
+}
+
+interface UpdateGameResponse {
+  status: {
+    code: number;
+    message: string;
+  };
+  gameID: number;
+}
+
 export async function fetchGolfGroups(searchTerm: string = 'test'): Promise<GolfGroup[]> {
   try {
     const response = await fetch(`${API_BASE}/getGroupList`, {
@@ -231,6 +272,39 @@ export async function deleteGame(gameId: string): Promise<DeleteGameResponse> {
     return data;
   } catch (error) {
     console.error('Error deleting game:', error);
+    throw error;
+  }
+}
+
+export async function updateGame(params: UpdateGameRequest): Promise<UpdateGameResponse> {
+  try {
+    const response = await fetch(`${API_BASE}/updateGame`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        action: 'updateGame',
+        ...params,
+        deviceID: DEVICE_ID,
+        source: APP_SOURCE,
+        appVersion: APP_VERSION
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json() as UpdateGameResponse;
+    
+    if (data.status.code !== 0) {
+      throw new Error(data.status.message);
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error updating game:', error);
     throw error;
   }
 }
