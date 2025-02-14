@@ -8,6 +8,48 @@ interface GameListResponse extends APIResponse<Game> {
   games: Game[];
 }
 
+interface AddGameRequest {
+  showPaceOfPlay: number;
+  strokeOffLow: number;
+  groupName: string;
+  useGroupHandicaps: number;
+  deviceID: string;
+  showLeaderBoard: number;
+  venmoName: string | null;
+  percentHandicap: number;
+  addRakeToPayouts: number;
+  skinType: string;
+  payouts: any[];
+  appVersion: string;
+  gameKey: string;
+  courseID: string;
+  mirrorGameID: string | null;
+  teeID: string;
+  showPayouts: number;
+  gameType: string;
+  tournamentName: string;
+  showSkins: number;
+  showNotifications: number;
+  round: number;
+  teamCount: number;
+  source: string;
+  skinsAnte: number;
+  gameAnte: number;
+  ownerDeviceID: string | null;
+  teamPlayerType: string;
+}
+
+interface AddGameResponse extends APIResponse<any> {
+  gameID: number;
+}
+
+interface DeleteGameResponse {
+  status: {
+    code: number;
+    message: string;
+  };
+}
+
 export async function fetchGolfGroups(searchTerm: string = 'test'): Promise<GolfGroup[]> {
   try {
     const response = await fetch(`${API_BASE}/getGroupList`, {
@@ -130,6 +172,65 @@ export async function fetchSkinsMetaList(): Promise<SkinsMetaResponse> {
     return data;
   } catch (error) {
     console.error('Error fetching skins meta list:', error);
+    throw error;
+  }
+}
+
+export async function addGame(params: AddGameRequest): Promise<AddGameResponse> {
+  try {
+    const response = await fetch(`${API_BASE}/addGame`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(params),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json() as AddGameResponse;
+    
+    if (data.status.code !== 0) {
+      throw new Error(data.status.message);
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error adding game:', error);
+    throw error;
+  }
+}
+
+export async function deleteGame(gameId: string): Promise<DeleteGameResponse> {
+  try {
+    const response = await fetch(`${API_BASE}/deleteGame`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        gameID: gameId,
+        deviceID: DEVICE_ID,
+        source: APP_SOURCE,
+        appVersion: APP_VERSION
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json() as DeleteGameResponse;
+    
+    if (data.status.code !== 0) {
+      throw new Error(data.status.message);
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error deleting game:', error);
     throw error;
   }
 }

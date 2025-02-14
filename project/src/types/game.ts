@@ -17,5 +17,6 @@ export interface Game {
   gameType: string;
   skinType: string;
   teeName: string;
+  teeID: string;
   round: string;
 }

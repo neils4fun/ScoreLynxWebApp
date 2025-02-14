@@ -30,6 +30,16 @@ export default function GamesScreen() {
     clearGroup();
   };
 
+  const handleGameCreated = () => {
+    setIsCreatingGame(false);
+    // Force a refresh of the games list by triggering a re-render of GroupGamesScreen
+    if (selectedGroup) {
+      const tempGroup = selectedGroup;
+      setSelectedGroup(null);
+      setTimeout(() => setSelectedGroup(tempGroup), 0);
+    }
+  };
+
   if (editingGame) {
     return (
       <GameFormScreen
@@ -40,7 +50,12 @@ export default function GamesScreen() {
   }
 
   if (isCreatingGame) {
-    return <GameFormScreen onBack={() => setIsCreatingGame(false)} />;
+    return (
+      <GameFormScreen 
+        onBack={() => setIsCreatingGame(false)}
+        onSuccess={handleGameCreated}
+      />
+    );
   }
 
   if (selectedGame) {

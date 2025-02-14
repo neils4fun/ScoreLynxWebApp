@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ArrowLeft, RotateCw, Pencil, Trash2 } from 'lucide-react';
-import { fetchGroupGames } from '../api/gameApi';
+import { fetchGroupGames, deleteGame } from '../api/gameApi';
 import { GameCard } from '../components/game/GameCard';
 import { WeatherIcon } from '../components/game/WeatherIcon';
 import type { GolfGroup, Game } from '../types/game';
@@ -53,11 +53,14 @@ export function GroupGamesScreen({
   const handleDeleteGame = async (e: React.MouseEvent, game: Game) => {
     e.stopPropagation();
     setDeletingGameIds(prev => new Set(prev).add(game.gameID));
+    setError(null);
     
     try {
-      // TODO: Implement delete functionality
-      console.log('Delete game:', game.gameID);
-      await new Promise(resolve => setTimeout(resolve, 500)); // Temporary delay to show loading state
+      await deleteGame(game.gameID);
+      await loadGames(); // Refresh the game list after successful deletion
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete game');
+      console.error('Error deleting game:', err);
     } finally {
       setDeletingGameIds(prev => {
         const next = new Set(prev);

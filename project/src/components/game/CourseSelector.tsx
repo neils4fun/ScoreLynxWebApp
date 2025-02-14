@@ -38,7 +38,6 @@ interface CourseSelectorProps {
 export function CourseSelector({ onCancel, onSelect }: CourseSelectorProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [courses, setCourses] = useState<Course[]>([]);
-  const [tees, setTees] = useState<Tee[]>([]);
   const [recentSelections, setRecentSelections] = useState<RecentCourseTee[]>([]);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [selectedTee, setSelectedTee] = useState<Tee | null>(null);
