@@ -14,6 +14,7 @@ import { CourseSelector } from '../components/game/CourseSelector';
 import { addGame, updateGame } from '../api/gameApi';
 import { useGroup } from '../context/GroupContext';
 import { APP_VERSION, APP_SOURCE, DEVICE_ID } from '../api/config';
+import { MirrorGameSelector } from '../components/game/MirrorGameSelector';
 
 // Create a theme instance
 const theme = createTheme();
@@ -35,6 +36,7 @@ interface GameSettings {
   skinsAnte: string;
   payouts: string;
   mirrorGame: string;
+  mirrorGameId: string | null;
 }
 
 interface GameOptions {
@@ -76,7 +78,8 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
         gameAnte: game.gameAnte || '0.0',
         skinsAnte: game.skinsAnte || '0.0',
         payouts: 'No Payouts Set',
-        mirrorGame: ''
+        mirrorGame: game.mirrorGameName || '',
+        mirrorGameId: game.mirrorGameID
       });
 
       setGameOptions({
@@ -103,7 +106,8 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
     gameAnte: '0.0',
     skinsAnte: '0.0',
     payouts: 'No Payouts Set',
-    mirrorGame: ''
+    mirrorGame: '',
+    mirrorGameId: null
   });
 
   const [gameOptions, setGameOptions] = useState<GameOptions>({
@@ -121,6 +125,7 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
   const [showGameTypeSelector, setShowGameTypeSelector] = useState(false);
   const [showSkinsTypeSelector, setShowSkinsTypeSelector] = useState(false);
   const [showCourseSelector, setShowCourseSelector] = useState(false);
+  const [showMirrorGameSelector, setShowMirrorGameSelector] = useState(false);
 
   const isFormComplete = () => {
     return (
@@ -163,7 +168,7 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
         appVersion: APP_VERSION,
         gameKey,
         courseID: gameSettings.courseId,
-        mirrorGameID: null,
+        mirrorGameID: gameSettings.mirrorGameId,
         teeID: gameSettings.teeId,
         showPayouts: gameOptions.showPayouts ? 1 : 0,
         gameType: gameSettings.gameType,
@@ -195,7 +200,7 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
           appVersion: APP_VERSION,
           gameKey: gameKey,
           courseID: gameSettings.courseId,
-          mirrorGameID: null,
+          mirrorGameID: gameSettings.mirrorGameId,
           teeID: gameSettings.teeId,
           showPayouts: gameOptions.showPayouts ? 1 : 0,
           gameType: gameSettings.gameType,
@@ -259,6 +264,15 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
       teeId
     }));
     setShowCourseSelector(false);
+  };
+
+  const handleMirrorGameSelect = (gameId: string, gameName: string) => {
+    setGameSettings(prev => ({
+      ...prev,
+      mirrorGameId: gameId,
+      mirrorGame: gameName
+    }));
+    setShowMirrorGameSelector(false);
   };
 
   return (
@@ -372,6 +386,17 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
                     className="w-24 px-2 py-1 text-right border rounded"
                     placeholder="0.00"
                   />
+                </div>
+              </div>
+              <div className="flex items-center justify-between p-4 cursor-pointer"
+                onClick={() => setShowMirrorGameSelector(true)}
+              >
+                <span>Mirror Game:</span>
+                <div className="flex items-center text-gray-500">
+                  <span className={gameSettings.mirrorGame ? 'text-black' : ''}>
+                    {gameSettings.mirrorGame || 'None'}
+                  </span>
+                  <ChevronRight className="w-5 h-5 ml-2" />
                 </div>
               </div>
             </div>
@@ -504,6 +529,15 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
         <CourseSelector
           onCancel={() => setShowCourseSelector(false)}
           onSelect={handleCourseSelect}
+        />
+      )}
+
+      {showMirrorGameSelector && selectedGroup && gameSettings.gameDate && (
+        <MirrorGameSelector
+          onBack={() => setShowMirrorGameSelector(false)}
+          onSelect={handleMirrorGameSelect}
+          groupId={selectedGroup.groupID}
+          gameKey={formatDateToGameKey(gameSettings.gameDate)}
         />
       )}
     </div>

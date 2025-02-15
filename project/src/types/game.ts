@@ -30,4 +30,6 @@ export interface Game {
   addRakeToPayouts: string;
   gameAnte: string;
   skinsAnte: string;
+  mirrorGameName: string;
+  mirrorGameID: string | null;
 }
