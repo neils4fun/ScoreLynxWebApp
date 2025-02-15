@@ -87,7 +87,7 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
         showPayouts: game.showPayouts === '1',
         useGroupHandicaps: game.useGroupHandicaps === '1',
         strokeOffLowHandicap: game.strokeOffLow === '1',
-        percentHandicapHaircut: parseInt(game.percentHandicap) || 100,
+        percentHandicapHaircut: Math.min(parseInt(game.percentHandicap) || 100, 100),
         addRakeToPayouts: game.addRakeToPayouts === '1'
       });
     }
@@ -298,7 +298,7 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
                 className="flex items-center justify-between p-4 cursor-pointer"
                 onClick={() => setShowDatePicker(true)}
               >
-                <span>Game Date</span>
+                <span>Game Date:</span>
                 <div className="flex items-center text-gray-500">
                   <span className={gameSettings.gameDate ? 'text-black' : ''}>
                     {gameSettings.gameDate ? formatDate(gameSettings.gameDate) : 'Select Game Date'}
@@ -310,7 +310,7 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
                 className="flex items-center justify-between p-4 cursor-pointer"
                 onClick={() => setShowGameTypeSelector(true)}
               >
-                <span>Game Type</span>
+                <span>Game Type:</span>
                 <div className="flex items-center text-gray-500">
                   <span className={gameSettings.gameType ? 'text-black' : ''}>
                     {gameSettings.gameType || 'Select Game Type'}
@@ -322,7 +322,7 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
                 className="flex items-center justify-between p-4 cursor-pointer"
                 onClick={() => setShowSkinsTypeSelector(true)}
               >
-                <span>Skins Type</span>
+                <span>Skins Type:</span>
                 <div className="flex items-center text-gray-500">
                   <span className={gameSettings.skinsType ? 'text-black' : ''}>
                     {gameSettings.skinsType || 'Select Skins Type'}
@@ -334,7 +334,7 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
                 className="flex items-center justify-between p-4 cursor-pointer"
                 onClick={() => setShowCourseSelector(true)}
               >
-                <span>Course/Tee</span>
+                <span>Course/Tee:</span>
                 <div className="flex items-center text-gray-500">
                   <span className={gameSettings.course ? 'text-black' : ''}>
                     {gameSettings.course || 'Select Course/Tee'}
@@ -343,7 +343,7 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
                 </div>
               </div>
               <div className="flex items-center justify-between p-4">
-                <span>Game Ante</span>
+                <span>Game Ante:</span>
                 <div className="flex items-center">
                   <input
                     type="number"
@@ -359,7 +359,7 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
                 </div>
               </div>
               <div className="flex items-center justify-between p-4">
-                <span>Skins Ante</span>
+                <span>Skins Ante:</span>
                 <div className="flex items-center">
                   <input
                     type="number"
@@ -383,30 +383,58 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
               <h2 className="text-lg">Game Options</h2>
             </div>
             <div className="bg-white divide-y divide-gray-200">
-              {Object.entries(gameOptions).map(([key, value]) => (
-                <div key={key} className="flex items-center justify-between px-4 py-3">
-                  <span className="text-base">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
-                  {typeof value === 'boolean' ? (
-                    <div 
-                      className={`w-12 h-7 rounded-full relative cursor-pointer ${
-                        value ? 'bg-green-500' : 'bg-gray-200'
-                      }`}
-                      onClick={() => setGameOptions(prev => ({
-                        ...prev,
-                        [key]: !value
-                      }))}
-                    >
-                      <div 
-                        className={`absolute top-1 w-5 h-5 rounded-full bg-white shadow transition-transform ${
-                          value ? 'right-1' : 'left-1'
-                        }`} 
+              {Object.entries(gameOptions).map(([key, value]) => {
+                const label = key
+                  .replace(/([A-Z])/g, ' $1')
+                  .split(' ')
+                  .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                  .join(' ');
+
+                if (key === 'percentHandicapHaircut') {
+                  return (
+                    <div key={key} className="flex items-center justify-between px-4 py-3">
+                      <span className="text-base">{label}:</span>
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="1"
+                        value={value}
+                        onChange={(e) => setGameOptions(prev => ({
+                          ...prev,
+                          percentHandicapHaircut: parseInt(e.target.value) || 0
+                        }))}
+                        className="w-24 px-2 py-1 text-right border rounded"
                       />
                     </div>
-                  ) : (
-                    <span className="text-right">{value}</span>
-                  )}
-                </div>
-              ))}
+                  );
+                }
+
+                return (
+                  <div key={key} className="flex items-center justify-between px-4 py-3">
+                    <span className="text-base">{label}:</span>
+                    {typeof value === 'boolean' ? (
+                      <div 
+                        className={`w-12 h-7 rounded-full relative cursor-pointer ${
+                          value ? 'bg-green-500' : 'bg-gray-200'
+                        }`}
+                        onClick={() => setGameOptions(prev => ({
+                          ...prev,
+                          [key]: !value
+                        }))}
+                      >
+                        <div 
+                          className={`absolute top-1 w-5 h-5 rounded-full bg-white shadow transition-transform ${
+                            value ? 'right-1' : 'left-1'
+                          }`} 
+                        />
+                      </div>
+                    ) : (
+                      <span className="text-right">{value}</span>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
