@@ -73,8 +73,8 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
         course: `${game.courseName} - ${game.teeName}`,
         courseId: game.courseID,
         teeId: game.teeID,
-        gameAnte: '',  // TODO: Add these fields to Game type if they exist
-        skinsAnte: '',
+        gameAnte: game.gameAnte || '0.0',
+        skinsAnte: game.skinsAnte || '0.0',
         payouts: 'No Payouts Set',
         mirrorGame: ''
       });
@@ -100,8 +100,8 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
     course: '',
     courseId: '',
     teeId: '',
-    gameAnte: '',
-    skinsAnte: '',
+    gameAnte: '0.0',
+    skinsAnte: '0.0',
     payouts: 'No Payouts Set',
     mirrorGame: ''
   });
@@ -173,8 +173,8 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
         round: 1,
         teamCount: 0,
         source: APP_SOURCE,
-        skinsAnte: parseInt(gameSettings.skinsAnte) || 0,
-        gameAnte: parseInt(gameSettings.gameAnte) || 0,
+        skinsAnte: parseFloat(gameSettings.skinsAnte) || 0,
+        gameAnte: parseFloat(gameSettings.gameAnte) || 0,
         teamPlayerType: selectedGameMeta?.teamPlayerType || 'Player'
       };
 
@@ -205,8 +205,8 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
           round: 1,
           teamCount: 0,
           source: APP_SOURCE,
-          skinsAnte: parseInt(gameSettings.skinsAnte) || 0,
-          gameAnte: parseInt(gameSettings.gameAnte) || 0,
+          skinsAnte: parseFloat(gameSettings.skinsAnte) || 0,
+          gameAnte: parseFloat(gameSettings.gameAnte) || 0,
           teamPlayerType: selectedGameMeta?.teamPlayerType || 'Player',
           ownerDeviceID: 'SLPWeb'
         });
@@ -340,6 +340,38 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
                     {gameSettings.course || 'Select Course/Tee'}
                   </span>
                   <ChevronRight className="w-5 h-5 ml-2" />
+                </div>
+              </div>
+              <div className="flex items-center justify-between p-4">
+                <span>Game Ante</span>
+                <div className="flex items-center">
+                  <input
+                    type="number"
+                    step="1.0"
+                    value={gameSettings.gameAnte}
+                    onChange={(e) => setGameSettings(prev => ({
+                      ...prev,
+                      gameAnte: e.target.value
+                    }))}
+                    className="w-24 px-2 py-1 text-right border rounded"
+                    placeholder="0.00"
+                  />
+                </div>
+              </div>
+              <div className="flex items-center justify-between p-4">
+                <span>Skins Ante</span>
+                <div className="flex items-center">
+                  <input
+                    type="number"
+                    step="1.0"
+                    value={gameSettings.skinsAnte}
+                    onChange={(e) => setGameSettings(prev => ({
+                      ...prev,
+                      skinsAnte: e.target.value
+                    }))}
+                    className="w-24 px-2 py-1 text-right border rounded"
+                    placeholder="0.00"
+                  />
                 </div>
               </div>
             </div>

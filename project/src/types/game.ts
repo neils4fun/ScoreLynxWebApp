@@ -28,4 +28,6 @@ export interface Game {
   strokeOffLow: string;
   percentHandicap: string;
   addRakeToPayouts: string;
+  gameAnte: string;
+  skinsAnte: string;
 }
