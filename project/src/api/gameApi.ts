@@ -110,6 +110,22 @@ interface MirrorableGameListResponse {
   games: MirrorableGame[];
 }
 
+export interface GamePayout {
+  payoutID: string;
+  payoutName: string;
+  gamePayout: number;
+  skinsPayout: number;
+  totalPayout: number;
+}
+
+interface GamePayoutsListResponse {
+  status: {
+    code: number;
+    message: string;
+  };
+  payouts: GamePayout[];
+}
+
 export async function fetchGolfGroups(searchTerm: string = 'test'): Promise<GolfGroup[]> {
   try {
     const response = await fetch(`${API_BASE}/getGroupList`, {
@@ -357,6 +373,38 @@ export async function fetchMirrorableGames(groupId: string, gameKey: string): Pr
     return data.games || [];
   } catch (error) {
     console.error('Error fetching mirrorable games:', error);
+    throw error;
+  }
+}
+
+export async function fetchGamePayoutsList(gameId: string): Promise<GamePayoutsListResponse> {
+  try {
+    const response = await fetch(`${API_BASE}/getGamePayoutsList`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        gameID: gameId,
+        source: APP_SOURCE,
+        deviceID: DEVICE_ID,
+        appVersion: APP_VERSION
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json() as GamePayoutsListResponse;
+    
+    if (data.status.code !== 0) {
+      throw new Error(data.status.message);
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error fetching game payouts list:', error);
     throw error;
   }
 }

@@ -11,7 +11,7 @@ import dayjs from 'dayjs';
 import { GameTypeSelector } from '../components/game/GameTypeSelector';
 import { SkinsTypeSelector } from '../components/game/SkinsTypeSelector';
 import { CourseSelector } from '../components/game/CourseSelector';
-import { addGame, updateGame } from '../api/gameApi';
+import { addGame, updateGame, fetchGamePayoutsList } from '../api/gameApi';
 import { useGroup } from '../context/GroupContext';
 import { APP_VERSION, APP_SOURCE, DEVICE_ID } from '../api/config';
 import { MirrorGameSelector } from '../components/game/MirrorGameSelector';
@@ -58,6 +58,7 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
   const [error, setError] = useState<string | null>(null);
   const [selectedGameMeta, setSelectedGameMeta] = useState<GameMeta | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Initialize form data from game prop if provided
   useEffect(() => {
@@ -77,7 +78,7 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
         teeId: game.teeID,
         gameAnte: game.gameAnte || '0.0',
         skinsAnte: game.skinsAnte || '0.0',
-        payouts: 'No Payouts Set',
+        payouts: 'Loading payouts...',
         mirrorGame: game.mirrorGameName || '',
         mirrorGameId: game.mirrorGameID
       });
@@ -93,6 +94,42 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
         percentHandicapHaircut: Math.min(parseInt(game.percentHandicap) || 100, 100),
         addRakeToPayouts: game.addRakeToPayouts === '1'
       });
+
+      // Fetch payouts list when editing a game
+      const loadPayouts = async () => {
+        setIsLoading(true);
+        try {
+          const response = await fetchGamePayoutsList(game.gameID);
+          
+          // Format payouts display string
+          if (response.status.code === 135 || !response.payouts || response.payouts.length === 0) {
+            setGameSettings(prev => ({
+              ...prev,
+              payouts: 'No Payouts Set'
+            }));
+          } else {
+            // Create a string of payout values
+            const payoutString = response.payouts
+              .map(payout => payout.toString())
+              .join(',');
+            
+            setGameSettings(prev => ({
+              ...prev,
+              payouts: payoutString || 'No Payouts Set'
+            }));
+          }
+        } catch (err) {
+          // Silently handle the "No places for game" error by setting default message
+          setGameSettings(prev => ({
+            ...prev,
+            payouts: 'No Payouts Set'
+          }));
+        } finally {
+          setIsLoading(false);
+        }
+      };
+
+      loadPayouts();
     }
   }, [game]);
 
@@ -388,15 +425,24 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
                   />
                 </div>
               </div>
-              <div className="flex items-center justify-between p-4 cursor-pointer"
-                onClick={() => setShowMirrorGameSelector(true)}
+              <div className="flex items-center justify-between p-4">
+                <span className="text-base">Payouts:</span>
+                <div className="flex items-center text-gray-500">
+                  <span className={gameSettings.payouts ? 'text-black' : ''}>
+                    {isLoading ? 'Loading...' : gameSettings.payouts}
+                  </span>
+                </div>
+              </div>
+              <div 
+                className="flex items-center justify-between p-4 cursor-pointer"
+                onClick={() => !isEditMode && setShowMirrorGameSelector(true)}
               >
-                <span>Mirror Game:</span>
+                <span className="text-base">Mirror Game:</span>
                 <div className="flex items-center text-gray-500">
                   <span className={gameSettings.mirrorGame ? 'text-black' : ''}>
                     {gameSettings.mirrorGame || 'None'}
                   </span>
-                  <ChevronRight className="w-5 h-5 ml-2" />
+                  {!isEditMode && <ChevronRight className="w-5 h-5 ml-2" />}
                 </div>
               </div>
             </div>
