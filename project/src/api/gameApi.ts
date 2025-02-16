@@ -123,7 +123,7 @@ interface GamePayoutsListResponse {
     code: number;
     message: string;
   };
-  payouts: GamePayout[];
+  payouts: number[];
 }
 
 export async function fetchGolfGroups(searchTerm: string = 'test'): Promise<GolfGroup[]> {

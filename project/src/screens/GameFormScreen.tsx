@@ -11,6 +11,7 @@ import dayjs from 'dayjs';
 import { GameTypeSelector } from '../components/game/GameTypeSelector';
 import { SkinsTypeSelector } from '../components/game/SkinsTypeSelector';
 import { CourseSelector } from '../components/game/CourseSelector';
+import { PayoutsEditor } from '../components/game/PayoutsEditor';
 import { addGame, updateGame, fetchGamePayoutsList } from '../api/gameApi';
 import { useGroup } from '../context/GroupContext';
 import { APP_VERSION, APP_SOURCE, DEVICE_ID } from '../api/config';
@@ -34,7 +35,8 @@ interface GameSettings {
   teeId: string;     // Hidden field for API
   gameAnte: string;
   skinsAnte: string;
-  payouts: string;
+  payouts: string;   // Display string for UI
+  payoutValues: number[];  // Internal array for API
   mirrorGame: string;
   mirrorGameId: string | null;
 }
@@ -59,6 +61,7 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
   const [selectedGameMeta, setSelectedGameMeta] = useState<GameMeta | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showPayoutsEditor, setShowPayoutsEditor] = useState(false);
 
   // Initialize form data from game prop if provided
   useEffect(() => {
@@ -79,6 +82,7 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
         gameAnte: game.gameAnte || '0.0',
         skinsAnte: game.skinsAnte || '0.0',
         payouts: 'Loading payouts...',
+        payoutValues: [],
         mirrorGame: game.mirrorGameName || '',
         mirrorGameId: game.mirrorGameID
       });
@@ -101,28 +105,25 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
         try {
           const response = await fetchGamePayoutsList(game.gameID);
           
-          // Format payouts display string
           if (response.status.code === 135 || !response.payouts || response.payouts.length === 0) {
             setGameSettings(prev => ({
               ...prev,
-              payouts: 'No Payouts Set'
+              payouts: 'No Payouts Set',
+              payoutValues: []
             }));
           } else {
-            // Create a string of payout values
-            const payoutString = response.payouts
-              .map(payout => payout.toString())
-              .join(',');
-            
+            // The response.payouts is already an array of integers
             setGameSettings(prev => ({
               ...prev,
-              payouts: payoutString || 'No Payouts Set'
+              payouts: response.payouts.join(', '),
+              payoutValues: response.payouts
             }));
           }
         } catch (err) {
-          // Silently handle the "No places for game" error by setting default message
           setGameSettings(prev => ({
             ...prev,
-            payouts: 'No Payouts Set'
+            payouts: 'No Payouts Set',
+            payoutValues: []
           }));
         } finally {
           setIsLoading(false);
@@ -134,15 +135,16 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
   }, [game]);
 
   const [gameSettings, setGameSettings] = useState<GameSettings>({
-    gameDate: new Date(),
+    gameDate: null,
     gameType: '',
     skinsType: '',
     course: '',
     courseId: '',
     teeId: '',
-    gameAnte: '0.0',
-    skinsAnte: '0.0',
+    gameAnte: '',
+    skinsAnte: '',
     payouts: 'No Payouts Set',
+    payoutValues: [],
     mirrorGame: '',
     mirrorGameId: null
   });
@@ -201,7 +203,7 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
         percentHandicap: gameOptions.percentHandicapHaircut,
         addRakeToPayouts: gameOptions.addRakeToPayouts ? 1 : 0,
         skinType: gameSettings.skinsType,
-        payouts: [],
+        payouts: gameSettings.payoutValues,
         appVersion: APP_VERSION,
         gameKey,
         courseID: gameSettings.courseId,
@@ -233,7 +235,7 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
           percentHandicap: gameOptions.percentHandicapHaircut,
           addRakeToPayouts: gameOptions.addRakeToPayouts ? 1 : 0,
           skinType: gameSettings.skinsType,
-          payouts: [],
+          payouts: gameSettings.payoutValues,
           appVersion: APP_VERSION,
           gameKey: gameKey,
           courseID: gameSettings.courseId,
@@ -310,6 +312,15 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
       mirrorGame: gameName
     }));
     setShowMirrorGameSelector(false);
+  };
+
+  const handlePayoutsSave = (payouts: number[]) => {
+    setGameSettings(prev => ({
+      ...prev,
+      payouts: payouts.length > 0 ? `${payouts.join(', ')}` : 'No Payouts Set',
+      payoutValues: payouts
+    }));
+    setShowPayoutsEditor(false);
   };
 
   return (
@@ -425,12 +436,16 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
                   />
                 </div>
               </div>
-              <div className="flex items-center justify-between p-4">
+              <div 
+                className="flex items-center justify-between p-4 cursor-pointer"
+                onClick={() => setShowPayoutsEditor(true)}
+              >
                 <span className="text-base">Payouts:</span>
                 <div className="flex items-center text-gray-500">
                   <span className={gameSettings.payouts ? 'text-black' : ''}>
                     {isLoading ? 'Loading...' : gameSettings.payouts}
                   </span>
+                  <ChevronRight className="w-5 h-5 ml-2" />
                 </div>
               </div>
               <div 
@@ -584,6 +599,14 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
           onSelect={handleMirrorGameSelect}
           groupId={selectedGroup.groupID}
           gameKey={formatDateToGameKey(gameSettings.gameDate)}
+        />
+      )}
+
+      {showPayoutsEditor && (
+        <PayoutsEditor
+          onBack={() => setShowPayoutsEditor(false)}
+          onSave={handlePayoutsSave}
+          initialPayouts={gameSettings.payoutValues}
         />
       )}
     </div>
