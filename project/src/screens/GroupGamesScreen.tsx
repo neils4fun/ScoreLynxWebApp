@@ -163,8 +163,7 @@ export function GroupGamesScreen({
                   </button>
                   {isGameEligibleForWeather(game) && (
                     <WeatherIcon
-                      city="Charlotte"
-                      state="NC"
+                      courseId={game.courseID}
                       date={new Date(
                         parseInt(game.gameKey.substring(0, 4)),
                         parseInt(game.gameKey.substring(4, 6)) - 1,

@@ -126,6 +126,33 @@ interface GamePayoutsListResponse {
   payouts: number[];
 }
 
+export interface Course {
+  courseID: string;
+  name: string;
+  city: string;
+  state: string;
+  region: string;
+  tees: Array<{
+    teeID: string;
+    name: string;
+    slope: number;
+    rating: number;
+    holes: Array<{
+      number: number;
+      par: number;
+      matchPlayHandicap: number;
+    }>;
+  }>;
+}
+
+interface GetCourseResponse {
+  status: {
+    code: number;
+    message: string;
+  };
+  course: Course;
+}
+
 export async function fetchGolfGroups(searchTerm: string = 'test'): Promise<GolfGroup[]> {
   try {
     const response = await fetch(`${API_BASE}/getGroupList`, {
@@ -407,4 +434,26 @@ export async function fetchGamePayoutsList(gameId: string): Promise<GamePayoutsL
     console.error('Error fetching game payouts list:', error);
     throw error;
   }
+}
+
+export async function fetchCourse(courseId: string): Promise<Course> {
+  const response = await fetch(`${API_BASE}/getCourse`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      courseID: courseId,
+      deviceID: DEVICE_ID,
+      appVersion: APP_VERSION,
+      source: APP_SOURCE,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch course details');
+  }
+
+  const data = await response.json() as GetCourseResponse;
+  return data.course;
 }
