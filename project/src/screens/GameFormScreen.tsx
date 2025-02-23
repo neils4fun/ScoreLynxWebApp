@@ -217,9 +217,11 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
         round: 1,
         teamCount: 0,
         source: APP_SOURCE,
-        skinsAnte: parseFloat(gameSettings.skinsAnte) || 0,
-        gameAnte: parseFloat(gameSettings.gameAnte) || 0,
-        teamPlayerType: selectedGameMeta?.teamPlayerType || 'Player'
+        skinsAnte: parseInt(gameSettings.skinsAnte) || 0,
+        gameAnte: parseInt(gameSettings.gameAnte) || 0,
+        teamPlayerType: gameSettings.gameType !== game?.gameType 
+          ? selectedGameMeta?.teamPlayerType || 'Player'
+          : game?.teamPlayerType
       };
 
       if (isEditMode && game) {
@@ -249,9 +251,11 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
           round: 1,
           teamCount: 0,
           source: APP_SOURCE,
-          skinsAnte: parseFloat(gameSettings.skinsAnte) || 0,
-          gameAnte: parseFloat(gameSettings.gameAnte) || 0,
-          teamPlayerType: selectedGameMeta?.teamPlayerType || 'Player',
+          skinsAnte: parseInt(gameSettings.skinsAnte) || 0,
+          gameAnte: parseInt(gameSettings.gameAnte) || 0,
+          teamPlayerType: gameSettings.gameType !== game?.gameType 
+            ? selectedGameMeta?.teamPlayerType || 'Player'
+            : game?.teamPlayerType,
           ownerDeviceID: 'SLPWeb'
         });
       } else {
