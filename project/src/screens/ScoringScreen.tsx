@@ -13,11 +13,11 @@ interface ScoringScreenProps {
 }
 
 export function ScoringScreen({ onBack, gameId, scorecardId }: ScoringScreenProps) {
-  const { selectedGame } = useGame();
   const { players, setPlayers } = useScorecard();
   const [holes, setHoles] = useState<Hole[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { selectedGame } = useGame();
   const [updatingScores, setUpdatingScores] = useState<Set<string>>(new Set());
 
   const loadData = async () => {
@@ -32,13 +32,26 @@ export function ScoringScreen({ onBack, gameId, scorecardId }: ScoringScreenProp
     try {
       const [playerData, courseData] = await Promise.all([
         fetchScorecardPlayerList(gameId, scorecardId),
-        fetchCourse(selectedGame.courseID)
+        fetchCourse(selectedGame.courseID),
       ]);
+      
+      // Transform the players data to ensure scores and junks are properly handled
+      const players = playerData.players.map(player => ({
+        ...player,
+        scores: player.scores.map(score => ({
+          scoreID: score.scoreID,
+          holeNumber: score.holeNumber,
+          grossScore: score.grossScore,
+          netScore: score.netScore,
+          junks: score.junks || [] // Ensure junks is always an array
+        }))
+      }));
 
-      setPlayers(playerData.players);
+      setPlayers(players);
       setHoles(courseData.course.tees[0].holes);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load data');
+      console.error('Failed to load scorecard data:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load scorecard data');
     } finally {
       setIsLoading(false);
     }
@@ -139,40 +152,42 @@ export function ScoringScreen({ onBack, gameId, scorecardId }: ScoringScreenProp
     };
 
     return (
-      <input
-        inputMode="numeric"
-        pattern="[0-9]*"
-        value={score?.grossScore || ''}
-        onFocus={(e) => e.target.select()}
-        onChange={(e) => {
-          const value = e.target.value;
-          if (value === '') {
-            // If the value is cleared, trigger delete if there's a score
-            if (score?.scoreID) {
+      <div className="relative">
+        <input
+          inputMode="numeric"
+          pattern="[0-9]*"
+          value={score?.grossScore || ''}
+          onFocus={(e) => e.target.select()}
+          onChange={(e) => {
+            const value = e.target.value;
+            if (value === '') {
+              // If the value is cleared, trigger delete if there's a score
+              if (score?.scoreID) {
+                handleDelete();
+              }
+            } else if (/^[1-9]\d*$/.test(value)) {
+              // Only process valid positive integers
+              const newScore = parseInt(value, 10);
+              handleScoreChange(player.playerID, holeNumber, newScore);
+            }
+          }}
+          onKeyDown={(e) => {
+            if ((e.key === 'Delete' || e.key === 'Backspace') && score?.scoreID) {
+              e.preventDefault();
               handleDelete();
             }
-          } else if (/^[1-9]\d*$/.test(value)) {
-            // Only process valid positive integers
-            const newScore = parseInt(value, 10);
-            handleScoreChange(player.playerID, holeNumber, newScore);
-          }
-        }}
-        onKeyDown={(e) => {
-          if ((e.key === 'Delete' || e.key === 'Backspace') && score?.scoreID) {
-            e.preventDefault();
-            handleDelete();
-          }
-        }}
-        disabled={isUpdating}
-        className={`w-8 px-0 py-1 border rounded text-right
-          ${isUpdating ? 'bg-gray-100' : 'bg-white'}
-          ${isUpdating ? 'cursor-not-allowed' : 'cursor-text'}
-          ${isUnderPar ? 'text-red-600' : 'text-gray-900'}
-          [appearance:textfield]
-          [&::-webkit-outer-spin-button]:appearance-none
-          [&::-webkit-inner-spin-button]:appearance-none`}
-        placeholder=""
-      />
+          }}
+          disabled={isUpdating}
+          className={`w-8 px-0 py-1 border rounded text-right
+            ${isUpdating ? 'bg-gray-100' : 'bg-white'}
+            ${isUpdating ? 'cursor-not-allowed' : 'cursor-text'}
+            ${isUnderPar ? 'text-red-600' : 'text-gray-900'}
+            [appearance:textfield]
+            [&::-webkit-outer-spin-button]:appearance-none
+            [&::-webkit-inner-spin-button]:appearance-none`}
+          placeholder=""
+        />
+      </div>
     );
   };
 
@@ -212,7 +227,7 @@ export function ScoringScreen({ onBack, gameId, scorecardId }: ScoringScreenProp
               <colgroup>
                 <col className="w-8" />
                 <col className="w-8" />
-                <col className="w-10" />
+                <col className="w-8" />
                 {players.map((player) => (
                   <col key={player.playerID} className="w-16" />
                 ))}
@@ -269,11 +284,24 @@ export function ScoringScreen({ onBack, gameId, scorecardId }: ScoringScreenProp
                     </td>
                     {players.map((player) => (
                       <td key={player.playerID} className="px-1 py-1 text-sm">
-                        <div className="flex space-x-1">
+                        <div className="relative flex space-x-1">
                           {renderScoreInput(player, hole.number)}
-                          <div className="w-8 py-1 text-right text-sm text-gray-900">
-                            {player.scores.find(s => s.holeNumber === hole.number)?.netScore ?? '0'}
-                          </div>
+                          {(() => {
+                            const score = player.scores.find(s => s.holeNumber === hole.number);
+                            const junkCount = score?.junks?.length || 0;
+                            return (
+                              <>
+                                <div className="w-8 flex items-center justify-end text-sm text-gray-900">
+                                  {score?.netScore ?? '0'}
+                                </div>
+                                {junkCount > 0 && (
+                                  <span className="absolute -top-1 -right-0.5 text-xs text-blue-600 font-medium">
+                                    {junkCount}
+                                  </span>
+                                )}
+                              </>
+                            );
+                          })()}
                         </div>
                       </td>
                     ))}
@@ -286,8 +314,12 @@ export function ScoringScreen({ onBack, gameId, scorecardId }: ScoringScreenProp
                   {players.map((player) => (
                     <td key={player.playerID} className="px-1 py-1 text-sm">
                       <div className="flex space-x-1">
-                        <div className="w-8 py-1 text-right text-sm text-gray-900">{player.scores.slice(0, 9).reduce((sum, score) => sum + (score?.grossScore || 0), 0)}</div>
-                        <div className="w-8 py-1 text-right text-sm text-gray-900">{player.scores.slice(0, 9).reduce((sum, score) => sum + (score?.netScore || 0), 0)}</div>
+                        <div className="w-8 py-1 text-right text-sm text-gray-900">
+                          {player.scores.filter(s => s.holeNumber <= 9).reduce((sum, score) => sum + (score?.grossScore || 0), 0)}
+                        </div>
+                        <div className="w-8 py-1 text-right text-sm text-gray-900">
+                          {player.scores.filter(s => s.holeNumber <= 9).reduce((sum, score) => sum + (score?.netScore || 0), 0)}
+                        </div>
                       </div>
                     </td>
                   ))}
@@ -305,11 +337,24 @@ export function ScoringScreen({ onBack, gameId, scorecardId }: ScoringScreenProp
                     </td>
                     {players.map((player) => (
                       <td key={player.playerID} className="px-1 py-1 text-sm">
-                        <div className="flex space-x-1">
+                        <div className="relative flex space-x-1">
                           {renderScoreInput(player, hole.number)}
-                          <div className="w-8 py-1 text-right text-sm text-gray-900">
-                            {player.scores.find(s => s.holeNumber === hole.number)?.netScore ?? '0'}
-                          </div>
+                          {(() => {
+                            const score = player.scores.find(s => s.holeNumber === hole.number);
+                            const junkCount = score?.junks?.length || 0;
+                            return (
+                              <>
+                                <div className="w-8 flex items-center justify-end text-sm text-gray-900">
+                                  {score?.netScore ?? '0'}
+                                </div>
+                                {junkCount > 0 && (
+                                  <span className="absolute -top-1 -right-0.5 text-xs text-blue-600 font-medium">
+                                    {junkCount}
+                                  </span>
+                                )}
+                              </>
+                            );
+                          })()}
                         </div>
                       </td>
                     ))}
@@ -322,8 +367,12 @@ export function ScoringScreen({ onBack, gameId, scorecardId }: ScoringScreenProp
                   {players.map((player) => (
                     <td key={player.playerID} className="px-1 py-1 text-sm">
                       <div className="flex space-x-1">
-                        <div className="w-8 py-1 text-right text-sm text-gray-900">{player.scores.slice(9).reduce((sum, score) => sum + (score?.grossScore || 0), 0)}</div>
-                        <div className="w-8 py-1 text-right text-sm text-gray-900">{player.scores.slice(9).reduce((sum, score) => sum + (score?.netScore || 0), 0)}</div>
+                        <div className="w-8 py-1 text-right text-sm text-gray-900">
+                          {player.scores.filter(s => s.holeNumber > 9).reduce((sum, score) => sum + (score?.grossScore || 0), 0)}
+                        </div>
+                        <div className="w-8 py-1 text-right text-sm text-gray-900">
+                          {player.scores.filter(s => s.holeNumber > 9).reduce((sum, score) => sum + (score?.netScore || 0), 0)}
+                        </div>
                       </div>
                     </td>
                   ))}
@@ -335,8 +384,12 @@ export function ScoringScreen({ onBack, gameId, scorecardId }: ScoringScreenProp
                   {players.map((player) => (
                     <td key={player.playerID} className="px-1 py-1 text-sm">
                       <div className="flex space-x-1">
-                        <div className="w-8 py-1 text-right text-sm text-gray-900">{player.scores.reduce((sum, score) => sum + (score?.grossScore || 0), 0)}</div>
-                        <div className="w-8 py-1 text-right text-sm text-gray-900">{player.scores.reduce((sum, score) => sum + (score?.netScore || 0), 0)}</div>
+                        <div className="w-8 py-1 text-right text-sm text-gray-900">
+                          {player.scores.reduce((sum, score) => sum + (score?.grossScore || 0), 0)}
+                        </div>
+                        <div className="w-8 py-1 text-right text-sm text-gray-900">
+                          {player.scores.reduce((sum, score) => sum + (score?.netScore || 0), 0)}
+                        </div>
                       </div>
                     </td>
                   ))}

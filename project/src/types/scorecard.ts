@@ -5,20 +5,32 @@ export interface Tee {
   rating: number;
 }
 
+export interface Junk {
+  junkID: string;
+  junkName: string;
+}
+
 export interface Score {
-  scoreID: string;
+  scoreID?: string;
   holeNumber: number;
   grossScore: number;
   netScore: number;
+  junks?: Junk[];
 }
 
 export interface Player {
   playerID: string;
   firstName: string;
   lastName: string;
-  handicap: string;
+  handicap: string | null;
   venmoName: string | null;
-  tee: Tee;
+  didPay?: string;
+  tee?: {
+    teeID: string;
+    name: string;
+    slope: number;
+    rating: number;
+  };
   scores: Score[];
 }
 

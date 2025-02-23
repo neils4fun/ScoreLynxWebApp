@@ -344,3 +344,47 @@ export async function updateScorecard(scorecardId: string, gameId: string, name:
 
   return data;
 }
+
+export interface Junk {
+  junkID: string;
+  junkName: string;
+}
+
+interface JunkListResponse {
+  status: {
+    code: number;
+    message: string;
+  };
+  junks: Junk[];
+}
+
+export async function fetchJunkList(): Promise<JunkListResponse> {
+  try {
+    const response = await fetch(`${API_BASE}/getJunkList`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        source: APP_SOURCE,
+        deviceID: DEVICE_ID,
+        appVersion: APP_VERSION
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json() as JunkListResponse;
+    
+    if (data.status.code !== 0) {
+      throw new Error(data.status.message);
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error fetching junk list:', error);
+    throw error;
+  }
+}
