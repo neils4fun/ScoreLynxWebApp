@@ -51,15 +51,17 @@ export function PlayerLeaderboard({ leaders, headers, gameTypes, isLoading, erro
           </h2>
           <div className="overflow-x-auto">
             <div className="inline-block min-w-full bg-white rounded-lg shadow">
-              <table className="min-w-full divide-y divide-gray-200">
+              <table className="min-w-full divide-y divide-gray-200 table-fixed">
                 <thead className="bg-gray-50">
                   <tr>
                     {(headers?.[groupIndex] || ['Player', 'Gross', 'Net', 'Total', 'Thru']).map((header, index) => (
                       <th 
                         key={header}
-                        className={`px-4 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap ${
-                          index === 0 ? 'text-left' : 'text-right'
-                        }`}
+                        className={`${
+                          index === 0 
+                            ? 'w-[120px] text-left' 
+                            : 'w-[60px] text-right'
+                        } px-2 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap`}
                       >
                         {header}
                       </th>
@@ -76,20 +78,22 @@ export function PlayerLeaderboard({ leaders, headers, gameTypes, isLoading, erro
                         playerName: leader.playerName
                       })}
                     >
-                      <td className="px-4 py-2 text-sm text-gray-900 whitespace-nowrap">
-                        {leader.playerName}
+                      <td className="px-2 py-2 text-sm text-gray-900">
+                        <div className="truncate" title={leader.playerName}>
+                          {leader.playerName}
+                        </div>
                       </td>
-                      <td className="px-4 py-2 text-sm text-gray-900 whitespace-nowrap text-right">
+                      <td className="px-2 py-2 text-sm text-gray-900 text-right">
                         {leader.grossScore}
                       </td>
-                      <td className="px-4 py-2 text-sm text-gray-900 whitespace-nowrap text-right">
+                      <td className="px-2 py-2 text-sm text-gray-900 text-right">
                         {leader.absoluteScore}
                       </td>
-                      <td className="px-4 py-2 text-sm text-gray-900 whitespace-nowrap text-right">
+                      <td className="px-2 py-2 text-sm text-gray-900 text-right">
                         {leader.relativeScore}
                       </td>
-                      <td className="px-4 py-2 text-sm text-gray-900 whitespace-nowrap text-right">
-                        {leader.thruHole}
+                      <td className="px-2 py-2 text-sm text-gray-900 text-right">
+                        {leader.holesPlayed}
                       </td>
                     </tr>
                   ))}

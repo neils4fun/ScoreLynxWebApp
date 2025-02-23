@@ -46,10 +46,9 @@ export interface PlayerLeader {
   grossScore: number;
   absoluteScore: string;
   relativeScore: string;
-  thruHole: number;
+  holesPlayed: string;
   place: number;
   handicap: string;
-  holesPlayed: string;
 }
 
 interface ApiStatus {
