@@ -229,7 +229,7 @@ export function ScoringScreen({ onBack, gameId, scorecardId }: ScoringScreenProp
                 <col className="w-8" />
                 <col className="w-8" />
                 {players.map((player) => (
-                  <col key={player.playerID} className="w-16" />
+                  <col key={player.playerID} className="w-[4.5rem]" />
                 ))}
               </colgroup>
               <thead className="bg-gray-50">
@@ -244,13 +244,13 @@ export function ScoringScreen({ onBack, gameId, scorecardId }: ScoringScreenProp
                       <div className="-rotate-90 whitespace-nowrap">INDEX</div>
                     </div>
                   </th>
-                  <th className="sticky top-0 left-16 z-40 p-0 text-xs font-medium text-gray-500 tracking-wider w-10 h-24 relative bg-gray-50 after:absolute after:inset-0 after:bg-gray-50">
+                  <th className="sticky top-0 left-16 z-40 p-0 text-xs font-medium text-gray-500 tracking-wider w-8 h-24 relative bg-gray-50 after:absolute after:inset-0 after:bg-gray-50">
                     <div className="relative z-10 h-full flex items-center justify-center">
                       <div className="-rotate-90 whitespace-nowrap">PAR</div>
                     </div>
                   </th>
                   {players.map((player) => (
-                    <th key={player.playerID} className="sticky top-0 z-40 px-1 py-1 text-xs font-medium text-gray-500 tracking-wider w-16 h-24 bg-gray-50">
+                    <th key={player.playerID} className="sticky top-0 z-40 px-1 py-1 text-xs font-medium text-gray-500 tracking-wider w-[4.5rem] h-24 bg-gray-50">
                       <div className="h-full flex items-center justify-center">
                         <span className="-rotate-90 whitespace-pre text-center">
                           {player.firstName}<br/>{player.lastName}
@@ -279,12 +279,12 @@ export function ScoringScreen({ onBack, gameId, scorecardId }: ScoringScreenProp
                     <td className="sticky left-8 z-20 px-2 py-2 text-right text-sm text-gray-900 bg-white w-8 after:absolute after:inset-0 after:bg-white">
                       <div className="relative z-10">{hole.matchPlayHandicap}</div>
                     </td>
-                    <td className="sticky left-16 z-20 px-2 py-2 text-right text-sm text-gray-900 bg-white w-10 after:absolute after:inset-0 after:bg-white">
+                    <td className="sticky left-16 z-20 px-2 py-2 text-right text-sm text-gray-900 bg-white w-8 after:absolute after:inset-0 after:bg-white">
                       <div className="relative z-10">{hole.par}</div>
                     </td>
                     {players.map((player) => (
                       <td key={player.playerID} className="px-1 py-1 text-sm">
-                        <div className="relative flex space-x-1">
+                        <div className="relative flex space-x-1 pr-2">
                           {renderScoreInput(player, hole.number)}
                           {(() => {
                             const score = player.scores.find(s => s.holeNumber === hole.number);
@@ -313,7 +313,7 @@ export function ScoringScreen({ onBack, gameId, scorecardId }: ScoringScreenProp
                   </td>
                   {players.map((player) => (
                     <td key={player.playerID} className="px-1 py-1 text-sm">
-                      <div className="flex space-x-1">
+                      <div className="flex space-x-1 pr-2">
                         <div className="w-8 py-1 text-right text-sm text-gray-900">
                           {player.scores.filter(s => s.holeNumber <= 9).reduce((sum, score) => sum + (score?.grossScore || 0), 0)}
                         </div>
@@ -332,12 +332,12 @@ export function ScoringScreen({ onBack, gameId, scorecardId }: ScoringScreenProp
                     <td className="sticky left-8 z-20 px-2 py-2 text-right text-sm text-gray-900 bg-white w-8 after:absolute after:inset-0 after:bg-white">
                       <div className="relative z-10">{hole.matchPlayHandicap}</div>
                     </td>
-                    <td className="sticky left-16 z-20 px-2 py-2 text-right text-sm text-gray-900 bg-white w-10 after:absolute after:inset-0 after:bg-white">
+                    <td className="sticky left-16 z-20 px-2 py-2 text-right text-sm text-gray-900 bg-white w-8 after:absolute after:inset-0 after:bg-white">
                       <div className="relative z-10">{hole.par}</div>
                     </td>
                     {players.map((player) => (
                       <td key={player.playerID} className="px-1 py-1 text-sm">
-                        <div className="relative flex space-x-1">
+                        <div className="relative flex space-x-1 pr-2">
                           {renderScoreInput(player, hole.number)}
                           {(() => {
                             const score = player.scores.find(s => s.holeNumber === hole.number);
@@ -366,7 +366,7 @@ export function ScoringScreen({ onBack, gameId, scorecardId }: ScoringScreenProp
                   </td>
                   {players.map((player) => (
                     <td key={player.playerID} className="px-1 py-1 text-sm">
-                      <div className="flex space-x-1">
+                      <div className="flex space-x-1 pr-2">
                         <div className="w-8 py-1 text-right text-sm text-gray-900">
                           {player.scores.filter(s => s.holeNumber > 9).reduce((sum, score) => sum + (score?.grossScore || 0), 0)}
                         </div>
@@ -383,7 +383,7 @@ export function ScoringScreen({ onBack, gameId, scorecardId }: ScoringScreenProp
                   </td>
                   {players.map((player) => (
                     <td key={player.playerID} className="px-1 py-1 text-sm">
-                      <div className="flex space-x-1">
+                      <div className="flex space-x-1 pr-2">
                         <div className="w-8 py-1 text-right text-sm text-gray-900">
                           {player.scores.reduce((sum, score) => sum + (score?.grossScore || 0), 0)}
                         </div>
