@@ -127,7 +127,8 @@ export async function updateScore(
   gameId: string,
   playerId: string,
   holeNumber: number,
-  grossScore: number
+  grossScore: number,
+  junkIDs?: string[]
 ): Promise<AddHoleScoreResponse> {
   const payload: AddHoleScoreRequest = {
     playerID: playerId,
@@ -135,7 +136,7 @@ export async function updateScore(
     gameHole: holeNumber,
     score: grossScore,
     source: APP_SOURCE,
-    junkIDs: [],
+    junkIDs: junkIDs?.map(id => parseInt(id)) || [],
     appVersion: APP_VERSION,
     deviceID: DEVICE_ID
   };
