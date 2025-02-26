@@ -50,7 +50,6 @@ interface GameOptions {
   useGroupHandicaps: boolean;
   strokeOffLowHandicap: boolean;
   percentHandicapHaircut: number;
-  addRakeToPayouts: boolean;
 }
 
 export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps) {
@@ -95,8 +94,7 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
         showPayouts: game.showPayouts === '1',
         useGroupHandicaps: game.useGroupHandicaps === '1',
         strokeOffLowHandicap: game.strokeOffLow === '1',
-        percentHandicapHaircut: Math.min(parseInt(game.percentHandicap) || 100, 100),
-        addRakeToPayouts: game.addRakeToPayouts === '1'
+        percentHandicapHaircut: Math.min(parseInt(game.percentHandicap) || 100, 100)
       });
 
       // Fetch payouts list when editing a game
@@ -157,8 +155,7 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
     showPayouts: false,
     useGroupHandicaps: false,
     strokeOffLowHandicap: false,
-    percentHandicapHaircut: 100,
-    addRakeToPayouts: true
+    percentHandicapHaircut: 100
   });
 
   const [showGameTypeSelector, setShowGameTypeSelector] = useState(false);
@@ -201,7 +198,7 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
         showLeaderBoard: gameOptions.showLeaderboard ? 1 : 0,
         venmoName: null,
         percentHandicap: gameOptions.percentHandicapHaircut,
-        addRakeToPayouts: gameOptions.addRakeToPayouts ? 1 : 0,
+        addRakeToPayouts: 1,
         skinType: gameSettings.skinsType,
         payouts: gameSettings.payoutValues,
         appVersion: APP_VERSION,
@@ -235,7 +232,7 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
           showLeaderBoard: gameOptions.showLeaderboard ? 1 : 0,
           venmoName: null,
           percentHandicap: gameOptions.percentHandicapHaircut,
-          addRakeToPayouts: gameOptions.addRakeToPayouts ? 1 : 0,
+          addRakeToPayouts: 1,
           skinType: gameSettings.skinsType,
           payouts: gameSettings.payoutValues,
           appVersion: APP_VERSION,
