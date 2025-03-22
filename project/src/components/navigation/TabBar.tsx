@@ -1,4 +1,4 @@
-import { Layout, ClipboardList, Trophy } from 'lucide-react';
+import { Layout, ClipboardList, Trophy, Settings } from 'lucide-react';
 
 interface TabBarProps {
   activeTab: string;
@@ -10,6 +10,7 @@ export function TabBar({ activeTab, onTabChange }: TabBarProps) {
     { id: 'games', label: 'Games', icon: Layout },
     { id: 'scorecard', label: 'Scorecard', icon: ClipboardList },
     { id: 'leaderboard', label: 'Leaderboard', icon: Trophy },
+    { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
   return (

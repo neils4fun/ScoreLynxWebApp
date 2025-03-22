@@ -3,6 +3,8 @@ import { TabBar } from './components/navigation/TabBar';
 import GamesScreen from './screens/GamesScreen';
 import { ScorecardScreen } from './screens/ScorecardScreen';
 import LeaderboardScreen from './screens/LeaderboardScreen';
+import SettingsScreen from './screens/SettingsScreen';
+import CourseMaintenanceScreen from './screens/CourseMaintenanceScreen';
 import { GameProvider } from './context/GameContext';
 import { GroupProvider } from './context/GroupContext';
 import { ScorecardProvider } from './context/ScorecardContext';
@@ -11,12 +13,21 @@ export default function App() {
   const [activeTab, setActiveTab] = useState(() => {
     return localStorage.getItem('activeTab') || 'games';
   });
+  const [showCourseMaintenance, setShowCourseMaintenance] = useState(false);
 
   useEffect(() => {
     localStorage.setItem('activeTab', activeTab);
   }, [activeTab]);
 
   const renderScreen = () => {
+    if (showCourseMaintenance) {
+      return (
+        <CourseMaintenanceScreen
+          onBack={() => setShowCourseMaintenance(false)}
+        />
+      );
+    }
+
     switch (activeTab) {
       case 'games':
         return <GamesScreen />;
@@ -24,6 +35,12 @@ export default function App() {
         return <ScorecardScreen />;
       case 'leaderboard':
         return <LeaderboardScreen />;
+      case 'settings':
+        return (
+          <SettingsScreen
+            onNavigateToCourseMaintenance={() => setShowCourseMaintenance(true)}
+          />
+        );
       default:
         return <GamesScreen />;
     }
@@ -37,7 +54,9 @@ export default function App() {
             <div className="max-w-2xl mx-auto">
               {renderScreen()}
             </div>
-            <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
+            {!showCourseMaintenance && (
+              <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
+            )}
           </div>
         </ScorecardProvider>
       </GameProvider>
