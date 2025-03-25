@@ -5,6 +5,7 @@ import { ScorecardScreen } from './screens/ScorecardScreen';
 import LeaderboardScreen from './screens/LeaderboardScreen';
 import SettingsScreen from './screens/SettingsScreen';
 import CourseMaintenanceScreen from './screens/CourseMaintenanceScreen';
+import MessagesScreen from './screens/MessagesScreen';
 import { GameProvider } from './context/GameContext';
 import { GroupProvider } from './context/GroupContext';
 import { ScorecardProvider } from './context/ScorecardContext';
@@ -14,6 +15,7 @@ export default function App() {
     return localStorage.getItem('activeTab') || 'games';
   });
   const [showCourseMaintenance, setShowCourseMaintenance] = useState(false);
+  const [showMessages, setShowMessages] = useState(false);
 
   useEffect(() => {
     localStorage.setItem('activeTab', activeTab);
@@ -24,6 +26,14 @@ export default function App() {
       return (
         <CourseMaintenanceScreen
           onBack={() => setShowCourseMaintenance(false)}
+        />
+      );
+    }
+
+    if (showMessages) {
+      return (
+        <MessagesScreen
+          onBack={() => setShowMessages(false)}
         />
       );
     }
@@ -39,6 +49,7 @@ export default function App() {
         return (
           <SettingsScreen
             onNavigateToCourseMaintenance={() => setShowCourseMaintenance(true)}
+            onNavigateToMessages={() => setShowMessages(true)}
           />
         );
       default:
@@ -54,7 +65,7 @@ export default function App() {
             <div className="max-w-2xl mx-auto">
               {renderScreen()}
             </div>
-            {!showCourseMaintenance && (
+            {!showCourseMaintenance && !showMessages && (
               <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
             )}
           </div>
