@@ -39,7 +39,14 @@ export default function CourseMaintenanceScreen({ onBack }: CourseMaintenanceScr
     version: '',
     tees: null
   });
-  const [selectedTee, setSelectedTee] = useState<Tee | null>(null);
+  const [selectedTee, setSelectedTee] = useState<Tee | null>({
+    teeID: '',
+    name: '',
+    slope: 0,
+    rating: 0,
+    pars: Array(18).fill(0),
+    handicaps: Array(18).fill(0)
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -278,7 +285,14 @@ export default function CourseMaintenanceScreen({ onBack }: CourseMaintenanceScr
         version: '',
         tees: null
       });
-      setSelectedTee(null);
+      setSelectedTee({
+        teeID: '',
+        name: '',
+        slope: 0,
+        rating: 0,
+        pars: Array(18).fill(0),
+        handicaps: Array(18).fill(0)
+      });
       alert('Course updated successfully!');
 
     } catch (error) {
@@ -441,99 +455,97 @@ export default function CourseMaintenanceScreen({ onBack }: CourseMaintenanceScr
               </div>
 
               <div className="space-y-4">
-                {selectedTee && (
-                  <div className="overflow-x-auto">
-                    <div className="min-w-full">
-                      {/* Front 9 Header */}
-                      <div className="grid grid-cols-[80px_repeat(9,48px)] gap-1 mb-2">
-                        <div className="font-medium text-gray-700">Hole:</div>
-                        {Array.from({ length: 9 }, (_, i) => (
-                          <div key={`hole_${i}`} className="text-center">
-                            {i + 1}
-                          </div>
-                        ))}
-                      </div>
+                <div className="overflow-x-auto">
+                  <div className="min-w-full">
+                    {/* Front 9 Header */}
+                    <div className="grid grid-cols-[80px_repeat(9,48px)] gap-1 mb-2">
+                      <div className="font-medium text-gray-700">Hole:</div>
+                      {Array.from({ length: 9 }, (_, i) => (
+                        <div key={`hole_${i}`} className="text-center">
+                          {i + 1}
+                        </div>
+                      ))}
+                    </div>
 
-                      {/* Front 9 Pars */}
-                      <div className="grid grid-cols-[80px_repeat(9,48px)] gap-1 mb-2">
-                        <div className="font-medium text-gray-700">Pars:</div>
-                        {Array.from({ length: 9 }, (_, i) => (
-                          <div key={`par_${i}`}>
-                            <input
-                              type="number"
-                              id={`par_${i}`}
-                              name={`par_${i}`}
-                              value={selectedTee.pars[i] || ''}
-                              onChange={handleTeeInputChange}
-                              className="w-full px-1 py-1 text-center border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                            />
-                          </div>
-                        ))}
-                      </div>
+                    {/* Front 9 Pars */}
+                    <div className="grid grid-cols-[80px_repeat(9,48px)] gap-1 mb-2">
+                      <div className="font-medium text-gray-700">Pars:</div>
+                      {Array.from({ length: 9 }, (_, i) => (
+                        <div key={`par_${i}`}>
+                          <input
+                            type="number"
+                            id={`par_${i}`}
+                            name={`par_${i}`}
+                            value={selectedTee?.pars[i] || ''}
+                            onChange={handleTeeInputChange}
+                            className="w-full px-1 py-1 text-center border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                          />
+                        </div>
+                      ))}
+                    </div>
 
-                      {/* Front 9 Handicaps */}
-                      <div className="grid grid-cols-[80px_repeat(9,48px)] gap-1 mb-4">
-                        <div className="font-medium text-gray-700">Indices:</div>
-                        {Array.from({ length: 9 }, (_, i) => (
-                          <div key={`handicap_${i}`}>
-                            <input
-                              type="number"
-                              id={`handicap_${i}`}
-                              name={`handicap_${i}`}
-                              value={selectedTee.handicaps[i] || ''}
-                              onChange={handleTeeInputChange}
-                              className="w-full px-1 py-1 text-center border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                            />
-                          </div>
-                        ))}
-                      </div>
+                    {/* Front 9 Handicaps */}
+                    <div className="grid grid-cols-[80px_repeat(9,48px)] gap-1 mb-4">
+                      <div className="font-medium text-gray-700">Indices:</div>
+                      {Array.from({ length: 9 }, (_, i) => (
+                        <div key={`handicap_${i}`}>
+                          <input
+                            type="number"
+                            id={`handicap_${i}`}
+                            name={`handicap_${i}`}
+                            value={selectedTee?.handicaps[i] || ''}
+                            onChange={handleTeeInputChange}
+                            className="w-full px-1 py-1 text-center border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                          />
+                        </div>
+                      ))}
+                    </div>
 
-                      {/* Back 9 Header */}
-                      <div className="grid grid-cols-[80px_repeat(9,48px)] gap-1 mb-2">
-                        <div className="font-medium text-gray-700">Hole:</div>
-                        {Array.from({ length: 9 }, (_, i) => (
-                          <div key={`hole_${i + 9}`} className="text-center">
-                            {i + 10}
-                          </div>
-                        ))}
-                      </div>
+                    {/* Back 9 Header */}
+                    <div className="grid grid-cols-[80px_repeat(9,48px)] gap-1 mb-2">
+                      <div className="font-medium text-gray-700">Hole:</div>
+                      {Array.from({ length: 9 }, (_, i) => (
+                        <div key={`hole_${i + 9}`} className="text-center">
+                          {i + 10}
+                        </div>
+                      ))}
+                    </div>
 
-                      {/* Back 9 Pars */}
-                      <div className="grid grid-cols-[80px_repeat(9,48px)] gap-1 mb-2">
-                        <div className="font-medium text-gray-700">Pars:</div>
-                        {Array.from({ length: 9 }, (_, i) => (
-                          <div key={`par_${i + 9}`}>
-                            <input
-                              type="number"
-                              id={`par_${i + 9}`}
-                              name={`par_${i + 9}`}
-                              value={selectedTee.pars[i + 9] || ''}
-                              onChange={handleTeeInputChange}
-                              className="w-full px-1 py-1 text-center border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                            />
-                          </div>
-                        ))}
-                      </div>
+                    {/* Back 9 Pars */}
+                    <div className="grid grid-cols-[80px_repeat(9,48px)] gap-1 mb-2">
+                      <div className="font-medium text-gray-700">Pars:</div>
+                      {Array.from({ length: 9 }, (_, i) => (
+                        <div key={`par_${i + 9}`}>
+                          <input
+                            type="number"
+                            id={`par_${i + 9}`}
+                            name={`par_${i + 9}`}
+                            value={selectedTee?.pars[i + 9] || ''}
+                            onChange={handleTeeInputChange}
+                            className="w-full px-1 py-1 text-center border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                          />
+                        </div>
+                      ))}
+                    </div>
 
-                      {/* Back 9 Handicaps */}
-                      <div className="grid grid-cols-[80px_repeat(9,48px)] gap-1">
-                        <div className="font-medium text-gray-700">Indices:</div>
-                        {Array.from({ length: 9 }, (_, i) => (
-                          <div key={`handicap_${i + 9}`}>
-                            <input
-                              type="number"
-                              id={`handicap_${i + 9}`}
-                              name={`handicap_${i + 9}`}
-                              value={selectedTee.handicaps[i + 9] || ''}
-                              onChange={handleTeeInputChange}
-                              className="w-full px-1 py-1 text-center border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                            />
-                          </div>
-                        ))}
-                      </div>
+                    {/* Back 9 Handicaps */}
+                    <div className="grid grid-cols-[80px_repeat(9,48px)] gap-1">
+                      <div className="font-medium text-gray-700">Indices:</div>
+                      {Array.from({ length: 9 }, (_, i) => (
+                        <div key={`handicap_${i + 9}`}>
+                          <input
+                            type="number"
+                            id={`handicap_${i + 9}`}
+                            name={`handicap_${i + 9}`}
+                            value={selectedTee?.handicaps[i + 9] || ''}
+                            onChange={handleTeeInputChange}
+                            className="w-full px-1 py-1 text-center border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                          />
+                        </div>
+                      ))}
                     </div>
                   </div>
-                )}
+                </div>
               </div>
             </div>
           </div>
