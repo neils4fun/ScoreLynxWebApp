@@ -106,46 +106,30 @@ interface AddTeamPlayerResponse {
   playerID: string;
 }
 
-interface AddTeamPlayerRequest {
-  teamID: string;
+interface AddTeamPlayerParams {
   firstName: string;
   lastName: string;
-  handicap: number | null;
-  teeID: string;
-  didPay: number;
-  venmoName: string | null;
-  source?: string;
-  appVersion?: string;
-  deviceID?: string;
+  handicap: string | null;
+  teeID?: string;
+  venmoName?: string | null;
+  didPay?: string;
 }
 
-export async function addTeamPlayerByName(
-  teamId: string,
-  player: {
-    firstName: string;
-    lastName: string;
-    handicap: string | null;
-    teeID?: string;
-  }
-): Promise<AddTeamPlayerResponse> {
+export async function addTeamPlayerByName(teamId: string, player: AddTeamPlayerParams): Promise<AddTeamPlayerResponse> {
   try {
-    console.log('Adding player to team with params:', { teamId, player });
-    
-    const payload: AddTeamPlayerRequest = {
+    const payload = {
       teamID: teamId,
       firstName: player.firstName,
       lastName: player.lastName,
       handicap: player.handicap ? parseInt(player.handicap) : null,
       teeID: player.teeID || '',
-      didPay: 0,
-      venmoName: null,
-      source: APP_SOURCE,
-      appVersion: APP_VERSION,
+      didPay: player.didPay ? parseInt(player.didPay) : 0,
+      venmoName: player.venmoName || null,
       deviceID: DEVICE_ID,
+      source: APP_SOURCE,
+      appVersion: APP_VERSION
     };
-    
-    console.log('Request payload:', payload);
-    
+
     const response = await fetch(`${API_BASE}/addTeamPlayerByName`, {
       method: 'POST',
       headers: {
@@ -155,30 +139,18 @@ export async function addTeamPlayerByName(
     });
 
     if (!response.ok) {
-      console.error('Network error:', {
-        status: response.status,
-        statusText: response.statusText,
-        url: response.url
-      });
-      throw new Error(`Network error: ${response.status} ${response.statusText}`);
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     const data = await response.json();
-    console.log('API Response:', data);
 
     if (data.status.code !== 0) {
-      console.error('API error:', data.status);
-      throw new Error(`API error: ${data.status.message || 'Unknown error'} (code: ${data.status.code})`);
+      throw new Error(data.status.message || 'Failed to add player to team');
     }
 
     return data;
   } catch (err) {
-    console.error('Error in addTeamPlayerByName:', err);
-    if (err instanceof Error) {
-      throw err;
-    } else {
-      throw new Error('Unknown error occurred while adding team player');
-    }
+    throw new Error(err instanceof Error ? err.message : 'Failed to add player to team');
   }
 }
 
@@ -209,38 +181,22 @@ interface TeamScoresResponse {
   }>;
 }
 
-export async function fetchTeamScores(
-  gameId: string,
-  teamId: string
-): Promise<TeamScoresResponse> {
+export async function fetchTeamScores(teamId: string): Promise<TeamScoresResponse> {
   try {
-    const response = await fetch(`${API_BASE}/getTeamScores`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        gameID: gameId,
-        teamID: teamId,
-        source: APP_SOURCE,
-        appVersion: APP_VERSION,
-        deviceID: DEVICE_ID,
-      }),
-    });
+    const response = await fetch(`${API_BASE}/getTeamScores?teamID=${teamId}`);
 
     if (!response.ok) {
-      throw new Error('Failed to fetch team scores');
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     const data = await response.json();
-    
+
     if (data.status.code !== 0) {
       throw new Error(data.status.message || 'Failed to fetch team scores');
     }
 
     return data;
   } catch (err) {
-    console.error('Error fetching team scores:', err);
-    throw err;
+    throw new Error(err instanceof Error ? err.message : 'Failed to fetch team scores');
   }
 } 

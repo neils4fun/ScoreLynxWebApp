@@ -9,7 +9,7 @@ import { ArrowLeft, RotateCw, Trash2 } from 'lucide-react';
 import { ICONS } from '../api/config';
 import { AddPlayersScreen } from './AddPlayersScreen';
 import type { Player } from '../types/player';
-import { removeScorecardPlayer } from '../api/playerApi';
+import { removeScorecardPlayer, addScorecardPlayer } from '../api/playerApi';
 
 export function ScorecardScreen() {
   const { selectedGame } = useGame();
@@ -172,7 +172,6 @@ export function ScorecardScreen() {
   };
 
   const handleAddPlayers = async (selectedPlayers: Player[]) => {
-    console.log('Adding players:', selectedPlayers);
     setIsAddingPlayers(false);
     await loadPlayers();
   };
@@ -193,23 +192,20 @@ export function ScorecardScreen() {
     }
   };
 
-  // Add useEffect to monitor state changes
+  // Update state when conditions change
   useEffect(() => {
-    console.log('State changed:', { 
-      isAddingPlayers, 
-      hasSelectedGame: !!selectedGame, 
-      scorecardId,
-      isScoring 
-    });
-  }, [isAddingPlayers, selectedGame, scorecardId, isScoring]);
+    if (
+      !isLoading && 
+      !isAddingPlayers && 
+      players.length === 0 && 
+      !error
+    ) {
+      setIsAddingPlayers(true);
+    }
+  }, [isLoading, isAddingPlayers, players.length, error]);
 
   // Make sure this condition comes FIRST, before any other view conditions
   if (isAddingPlayers && selectedGame && scorecardId) {
-    console.log('Condition met for AddPlayersScreen:', {
-      isAddingPlayers,
-      hasSelectedGame: !!selectedGame,
-      scorecardId
-    });
     return (
       <AddPlayersScreen
         gameId={selectedGame.gameID}
@@ -249,13 +245,7 @@ export function ScorecardScreen() {
                 src={ICONS.ADD_USERS}
                 alt="Add Multiple Players"
                 onClick={() => {
-                  console.log('Before setting isAddingPlayers:', {
-                    current: isAddingPlayers,
-                    selectedGame,
-                    scorecardId
-                  });
                   setIsAddingPlayers(true);
-                  console.log('After setting isAddingPlayers');
                 }}
                 className="w-6 h-6 mr-2 cursor-pointer"
               />
