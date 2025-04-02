@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { ArrowLeft, RotateCw, Check } from 'lucide-react';
 import { fetchGroupPlayerList, addGamePlayerByName } from '../api/playerApi';
 import { addTeamPlayerByName } from '../api/teamApi';
+import { getGamePlayerExScorecardList } from '../api/scorecardApi';
 import type { Player } from '../types/player';
 
 interface AddGroupPlayersScreenProps {
@@ -9,6 +10,7 @@ interface AddGroupPlayersScreenProps {
   onAddPlayers: (players: Player[]) => void;
   gameId: string;
   groupId: string;
+  scorecardId?: string;
   teamId?: string; // Optional teamId to determine context
 }
 
@@ -17,6 +19,7 @@ export function AddGroupPlayersScreen({
   onAddPlayers, 
   gameId, 
   groupId,
+  scorecardId,
   teamId 
 }: AddGroupPlayersScreenProps) {
   const [players, setPlayers] = useState<Player[]>([]);
@@ -25,23 +28,35 @@ export function AddGroupPlayersScreen({
   const [error, setError] = useState<string | null>(null);
   const [isAddingPlayers, setIsAddingPlayers] = useState(false);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
+    if (!gameId) return;
+    
     setIsLoading(true);
     setError(null);
-
+    
     try {
-      const response = await fetchGroupPlayerList(gameId);
+      let response;
+      if (scorecardId) {
+        // If scorecardId is provided, get players not in the scorecard
+        response = await getGamePlayerExScorecardList(gameId);
+      } else if (teamId) {
+        // If teamId is provided, get group players
+        response = await fetchGroupPlayerList(gameId);
+      } else {
+        // For player-type games, get group players
+        response = await fetchGroupPlayerList(gameId);
+      }
       setPlayers(response.players);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load players');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [gameId, groupId, scorecardId, teamId, setIsLoading, setError, setPlayers]);
 
   useEffect(() => {
     loadData();
-  }, [gameId]);
+  }, [loadData]);
 
   const togglePlayer = (playerId: string) => {
     setSelectedPlayerIds(prev => {
@@ -64,58 +79,35 @@ export function AddGroupPlayersScreen({
 
     try {
       if (teamId) {
-        // Team context: Add players to team
-        console.log('Adding players to team:', { teamId, players: selectedPlayers });
-        const results = await Promise.allSettled(
-          selectedPlayers.map(player => 
-            addTeamPlayerByName(teamId, {
-              firstName: player.firstName,
-              lastName: player.lastName,
-              handicap: player.handicap,
-              teeID: player.tee?.teeID
-            })
-          )
-        );
-        
-        // Check for any failures
-        const failures = results.filter(result => result.status === 'rejected');
-        if (failures.length > 0) {
-          const errors = failures.map(f => (f as PromiseRejectedResult).reason.message);
-          throw new Error(`Failed to add some players: ${errors.join(', ')}`);
+        // Add players to team
+        for (const player of selectedPlayers) {
+          await addTeamPlayerByName(teamId, {
+            firstName: player.firstName,
+            lastName: player.lastName,
+            handicap: player.handicap ? parseFloat(player.handicap) : 0,
+            teeID: player.tee?.teeID || '',
+            venmoName: null,
+            didPay: 0
+          });
         }
       } else {
-        // Game context: Add players to game
-        console.log('Adding players to game:', { gameId, players: selectedPlayers });
-        const results = await Promise.allSettled(
-          selectedPlayers.map(async player => {
-            const handicapValue = player.handicap ? parseInt(player.handicap) : null;
-            const teeId = player.tee?.teeID || '';
-
-            return await addGamePlayerByName({
-              gameID: gameId,
-              groupID: groupId,
-              firstName: player.firstName,
-              lastName: player.lastName,
-              handicap: handicapValue,
-              teeID: teeId,
-              didPay: parseInt(player.didPay) || 0,
-              venmoName: player.venmoName,
-            });
-          })
-        );
-
-        // Check for any failures
-        const failures = results.filter(result => result.status === 'rejected');
-        if (failures.length > 0) {
-          const errors = failures.map(f => (f as PromiseRejectedResult).reason.message);
-          throw new Error(`Failed to add some players: ${errors.join(', ')}`);
+        // Add players to game
+        for (const player of selectedPlayers) {
+          await addGamePlayerByName({
+            firstName: player.firstName,
+            lastName: player.lastName,
+            handicap: player.handicap ? parseFloat(player.handicap) : 0,
+            teeID: player.tee?.teeID || '',
+            gameID: gameId,
+            groupID: groupId,
+            didPay: 0,
+            venmoName: null
+          });
         }
       }
-      
-      // Call onAddPlayers with the selected players to trigger refresh
+      // Pass the selected players to the parent component
       onAddPlayers(selectedPlayers);
     } catch (err) {
-      console.error('Error adding players:', err);
       setError(err instanceof Error ? err.message : 'Failed to add players');
     } finally {
       setIsAddingPlayers(false);

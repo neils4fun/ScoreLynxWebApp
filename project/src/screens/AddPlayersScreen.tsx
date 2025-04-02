@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ArrowLeft, Check } from 'lucide-react';
-import { fetchGamePlayerExScorecardList, addScorecardPlayer } from '../api/playerApi';
+import { getGamePlayerExScorecardList } from '../api/scorecardApi';
+import { addScorecardPlayer } from '../api/playerApi';
 import type { Player } from '../types/player';
 
 interface AddPlayersScreenProps {
@@ -23,7 +24,7 @@ export function AddPlayersScreen({ gameId, scorecardId, onBack, onAddPlayers }: 
       setError(null);
 
       try {
-        const response = await fetchGamePlayerExScorecardList(gameId);
+        const response = await getGamePlayerExScorecardList(gameId);
         setPlayers(response.players);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load players');

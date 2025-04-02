@@ -1,35 +1,6 @@
 import { API_BASE, APP_SOURCE, DEVICE_ID, APP_VERSION } from './config';
 import type { Player } from '../types/player';
 
-interface GamePlayerExScorecardListResponse {
-  status: {
-    code: number;
-    message: string;
-  };
-  players: Player[];
-}
-
-export async function fetchGamePlayerExScorecardList(gameId: string): Promise<GamePlayerExScorecardListResponse> {
-  const response = await fetch(`${API_BASE}/getGamePlayerExScorecardList`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      deviceID: DEVICE_ID,
-      source: APP_SOURCE,
-      gameID: gameId,
-      appVersion: APP_VERSION,
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch available players');
-  }
-
-  return response.json();
-}
-
 interface AddScorecardPlayerResponse {
   status: {
     code: number;
@@ -37,7 +8,14 @@ interface AddScorecardPlayerResponse {
   };
   scorecardPlayerID: string;
   scorecardID: string;
-  playerID: string;
+}
+
+interface GamePlayerListResponse {
+  status: {
+    code: number;
+    message: string;
+  };
+  players: Player[];
 }
 
 export async function addScorecardPlayer(
@@ -67,46 +45,27 @@ export async function addScorecardPlayer(
   return response.json();
 }
 
-interface RemoveScorecardPlayerResponse {
-  status: {
-    code: number;
-    message: string;
-  };
-  scorecardID: string;
-  playerID: string;
-}
-
 export async function removeScorecardPlayer(
   scorecardId: string,
   playerId: string
-): Promise<RemoveScorecardPlayerResponse> {
-  const response = await fetch(`${API_BASE}/removeScorecardPlayerByID`, {
+): Promise<void> {
+  const response = await fetch(`${API_BASE}/removeScorecardPlayer`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      deviceID: DEVICE_ID,
-      playerID: playerId,
-      source: APP_SOURCE,
       scorecardID: scorecardId,
+      playerID: playerId,
       appVersion: APP_VERSION,
+      source: APP_SOURCE,
+      deviceID: DEVICE_ID,
     }),
   });
 
   if (!response.ok) {
     throw new Error('Failed to remove player from scorecard');
   }
-
-  return response.json();
-}
-
-interface GamePlayerListResponse {
-  status: {
-    code: number;
-    message: string;
-  };
-  players: Player[];
 }
 
 export async function fetchGamePlayerList(gameId: string): Promise<GamePlayerListResponse> {
@@ -263,32 +222,28 @@ interface AddGamePlayerByNameResponse {
 
 export async function addGamePlayerByName(params: AddGamePlayerByNameRequest): Promise<AddGamePlayerByNameResponse> {
   try {
-    console.log('Adding player with params:', params);
-    
     const response = await fetch(`${API_BASE}/addGamePlayerByName`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        ...params,
-        source: APP_SOURCE,
-        appVersion: APP_VERSION,
-        deviceID: DEVICE_ID,
-      }),
+      body: JSON.stringify(params),
     });
 
-    const data = await response.json();
-    console.log('API Response:', data);
+    if (!response.ok) {
+      throw new Error('Failed to add player');
+    }
 
-    if (!response.ok || data.status.code !== 0) {
-      throw new Error(data.status.message || 'Failed to add player to game');
+    const data = await response.json() as AddGamePlayerByNameResponse;
+    
+    if (data.status.code !== 0) {
+      throw new Error(data.status.message);
     }
 
     return data;
-  } catch (err) {
-    console.error('Error adding player:', err);
-    throw err;
+  } catch (error) {
+    console.error('Error adding player:', error);
+    throw error;
   }
 }
 

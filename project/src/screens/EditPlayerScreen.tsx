@@ -48,8 +48,8 @@ export function EditPlayerScreen({
           const response = await addTeamPlayerByName(teamId, {
             firstName,
             lastName,
-            handicap: handicap || null,
-            teeID: selectedTee?.teeID
+            handicap: handicap ? parseFloat(handicap) : null,
+            teeID: selectedTee?.teeID || ''
           });
           
           // Create a player object from the response
@@ -70,7 +70,7 @@ export function EditPlayerScreen({
             groupID: groupId,
             firstName,
             lastName,
-            handicap: handicap ? parseInt(handicap, 10) : null,
+            handicap: handicap ? parseFloat(handicap) : null,
             teeID: selectedTee?.teeID || '',
             didPay: 0,
             venmoName: null,
@@ -97,7 +97,7 @@ export function EditPlayerScreen({
           groupID: groupId,
           firstName,
           lastName,
-          handicap: handicap ? parseInt(handicap, 10) : null,
+          handicap: handicap ? parseFloat(handicap) : null,
           teeID: selectedTee?.teeID || '',
           didPay: parseInt(player.didPay, 10) || 0,
           venmoName: player.venmoName,

@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, RotateCw } from 'lucide-react';
-import { fetchTeamList } from '../api/teamApi';
+import { ArrowLeft, RotateCw, Trash2 } from 'lucide-react';
+import { fetchTeamList, deleteTeam } from '../api/teamApi';
 import type { Team } from '../types/team';
 import type { Game } from '../types/game';
 import { TeamPlayerListScreen } from './TeamPlayerListScreen';
+import { AddTeamScreen } from './AddTeamScreen';
 
 interface GameTeamListScreenProps {
   onBack: () => void;
@@ -16,6 +17,8 @@ export function GameTeamListScreen({ onBack, gameId, game }: GameTeamListScreenP
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
+  const [isAddingTeam, setIsAddingTeam] = useState(false);
+  const [isDeletingTeam, setIsDeletingTeam] = useState(false);
 
   const loadData = async () => {
     setIsLoading(true);
@@ -34,6 +37,35 @@ export function GameTeamListScreen({ onBack, gameId, game }: GameTeamListScreenP
   useEffect(() => {
     loadData();
   }, [gameId]);
+
+  const handleDeleteTeam = async (teamId: string) => {
+    if (isDeletingTeam) return;
+
+    setIsDeletingTeam(true);
+    setError(null);
+
+    try {
+      await deleteTeam(teamId);
+      await loadData(); // Refresh the list after successful deletion
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete team');
+    } finally {
+      setIsDeletingTeam(false);
+    }
+  };
+
+  if (isAddingTeam) {
+    return (
+      <AddTeamScreen
+        gameId={gameId}
+        onBack={() => setIsAddingTeam(false)}
+        onSuccess={() => {
+          setIsAddingTeam(false);
+          loadData();
+        }}
+      />
+    );
+  }
 
   if (selectedTeam) {
     return (
@@ -63,7 +95,13 @@ export function GameTeamListScreen({ onBack, gameId, game }: GameTeamListScreenP
           <ArrowLeft className="w-6 h-6" />
         </button>
         <h2 className="text-2xl font-bold text-gray-900 ml-4">Teams</h2>
-        <div className="flex-1 flex justify-end">
+        <div className="flex-1 flex justify-end space-x-2">
+          <button
+            onClick={() => setIsAddingTeam(true)}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          >
+            Add Team
+          </button>
           <button
             onClick={loadData}
             disabled={isLoading}
@@ -78,18 +116,29 @@ export function GameTeamListScreen({ onBack, gameId, game }: GameTeamListScreenP
 
       <div className="space-y-2">
         {teams.map((team) => (
-          <button
+          <div
             key={team.teamID}
-            onClick={() => setSelectedTeam(team)}
             className="w-full p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow
               flex items-center justify-between border border-gray-200"
           >
-            <div className="flex flex-col items-start">
+            <button
+              onClick={() => setSelectedTeam(team)}
+              className="flex-1 text-left"
+            >
               <span className="text-lg font-medium text-gray-900">
                 {team.teamName}
               </span>
-            </div>
-          </button>
+            </button>
+            <button
+              onClick={() => handleDeleteTeam(team.teamID)}
+              disabled={isDeletingTeam}
+              className={`p-2 text-gray-400 hover:text-red-600 rounded-full hover:bg-gray-100
+                ${isDeletingTeam ? 'opacity-50 cursor-not-allowed' : ''}
+              `}
+            >
+              <Trash2 className="w-5 h-5" />
+            </button>
+          </div>
         ))}
       </div>
     </div>

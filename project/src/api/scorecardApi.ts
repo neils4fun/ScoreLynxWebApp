@@ -1,6 +1,7 @@
 import { API_BASE, APP_VERSION, APP_SOURCE, DEVICE_ID } from './config';
 import { ScorecardListResponse, ScorecardPlayerListResponse } from '../types/scorecard';
 import { CourseResponse } from '../types/course';
+import type { Player } from '../types/player';
 
 export async function fetchScorecardList(gameId: string): Promise<ScorecardListResponse> {
   try {
@@ -388,4 +389,33 @@ export async function fetchJunkList(): Promise<JunkListResponse> {
     console.error('Error fetching junk list:', error);
     throw error;
   }
+}
+
+interface GamePlayerExScorecardListResponse {
+  status: {
+    code: number;
+    message: string;
+  };
+  players: Player[];
+}
+
+export async function getGamePlayerExScorecardList(gameId: string): Promise<GamePlayerExScorecardListResponse> {
+  const response = await fetch(`${API_BASE}/getGamePlayerExScorecardList`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      deviceID: DEVICE_ID,
+      source: APP_SOURCE,
+      gameID: gameId,
+      appVersion: APP_VERSION,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch available players');
+  }
+
+  return response.json();
 }

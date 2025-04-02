@@ -5,9 +5,11 @@ import type { Game } from '../types/game';
 interface GameFormScreenProps {
   onBack: () => void;
   game?: Game; // Optional game prop for edit mode
+  onUpdateGame: (gameSettings: any, gameOptions: any) => void;
+  onAddGame: (gameSettings: any, gameOptions: any) => void;
 }
 
-export function GameFormScreen({ onBack, game }: GameFormScreenProps) {
+export function GameFormScreen({ onBack, game, onUpdateGame, onAddGame }: GameFormScreenProps) {
   const isEditMode = !!game;
 
   const [gameSettings, setGameSettings] = useState({
@@ -55,14 +57,13 @@ export function GameFormScreen({ onBack, game }: GameFormScreenProps) {
     }
   }, [game]);
 
-  const handleSubmit = () => {
-    if (isEditMode) {
-      console.log('Update game clicked', { gameSettings, gameOptions });
-      // TODO: Implement update logic
-    } else {
-      console.log('Add game clicked', { gameSettings, gameOptions });
-      // TODO: Implement create logic
-    }
+  const handleUpdateGame = () => {
+    if (!game) return;
+    onUpdateGame(gameSettings, gameOptions);
+  };
+
+  const handleAddGame = () => {
+    onAddGame(gameSettings, gameOptions);
   };
 
   return (
@@ -140,7 +141,7 @@ export function GameFormScreen({ onBack, game }: GameFormScreenProps) {
       {/* Fixed Button */}
       <div className="fixed bottom-16 inset-x-0 max-w-md mx-auto p-4 bg-gray-100">
         <button
-          onClick={handleSubmit}
+          onClick={isEditMode ? handleUpdateGame : handleAddGame}
           className="w-full bg-gray-400 text-white py-3 rounded-lg font-medium"
         >
           {isEditMode ? 'Update Game' : 'Add Game'}

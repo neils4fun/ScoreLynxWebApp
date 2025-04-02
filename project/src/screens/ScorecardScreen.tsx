@@ -7,15 +7,14 @@ import { fetchScorecardList, fetchScorecardPlayerList, addScorecard, updateScore
 import type { ScorecardListResponse } from '../types/scorecard';
 import { ArrowLeft, RotateCw, Trash2 } from 'lucide-react';
 import { ICONS } from '../api/config';
-import { AddPlayersScreen } from './AddPlayersScreen';
 import type { Player } from '../types/player';
-import { removeScorecardPlayer } from '../api/playerApi';
+import { removeScorecardPlayer, addScorecardPlayer } from '../api/playerApi';
+import { AddGroupPlayersScreen } from './AddGroupPlayersScreen';
 
 export function ScorecardScreen() {
   const { selectedGame } = useGame();
   const { scorecardId, setCurrentScorecard, players, setPlayers } = useScorecard();
   const [scorecards, setScorecards] = useState<ScorecardListResponse['scorecards']>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isScoring, setIsScoring] = useState(() => {
     const saved = localStorage.getItem('scorecardIsScoring');
@@ -80,22 +79,6 @@ export function ScorecardScreen() {
   };
 
   useEffect(() => {
-    async function loadPlayers() {
-      if (!selectedGame || !scorecardId) return;
-
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        const response = await fetchScorecardPlayerList(selectedGame.gameID, scorecardId);
-        setPlayers(response.players);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load players');
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
     if (scorecardId && !isScoring) {
       loadPlayers();
     }
@@ -171,10 +154,28 @@ export function ScorecardScreen() {
     setError(null);
   };
 
-  const handleAddPlayers = async (selectedPlayers: Player[]) => {
-    console.log('Adding players:', selectedPlayers);
+  const handleAddPlayers = async (newPlayers: Player[]) => {
+    if (newPlayers.length === 0 || !selectedGame || !scorecardId) return;
+
+    setError(null);
+
+    try {
+      // Add players one by one since the API expects a single player
+      for (const player of newPlayers) {
+        await addScorecardPlayer(selectedGame.gameID, scorecardId, player.playerID);
+      }
+      // Return to the scorecard view first
+      setIsAddingPlayers(false);
+      // Then refresh the player list
+      await loadPlayers();
+    } catch (err) {
+      console.error('Error adding players:', err);
+      setError(err instanceof Error ? err.message : 'Failed to add players');
+    }
+  };
+
+  const handleBack = () => {
     setIsAddingPlayers(false);
-    await loadPlayers();
   };
 
   const handleDeletePlayer = async (playerId: string) => {
@@ -193,29 +194,15 @@ export function ScorecardScreen() {
     }
   };
 
-  // Add useEffect to monitor state changes
-  useEffect(() => {
-    console.log('State changed:', { 
-      isAddingPlayers, 
-      hasSelectedGame: !!selectedGame, 
-      scorecardId,
-      isScoring 
-    });
-  }, [isAddingPlayers, selectedGame, scorecardId, isScoring]);
-
   // Make sure this condition comes FIRST, before any other view conditions
   if (isAddingPlayers && selectedGame && scorecardId) {
-    console.log('Condition met for AddPlayersScreen:', {
-      isAddingPlayers,
-      hasSelectedGame: !!selectedGame,
-      scorecardId
-    });
     return (
-      <AddPlayersScreen
-        gameId={selectedGame.gameID}
-        scorecardId={scorecardId}
-        onBack={() => setIsAddingPlayers(false)}
+      <AddGroupPlayersScreen
+        onBack={handleBack}
         onAddPlayers={handleAddPlayers}
+        gameId={selectedGame.gameID}
+        groupId={selectedGame.groupID}
+        scorecardId={scorecardId}
       />
     );
   }
@@ -249,13 +236,7 @@ export function ScorecardScreen() {
                 src={ICONS.ADD_USERS}
                 alt="Add Multiple Players"
                 onClick={() => {
-                  console.log('Before setting isAddingPlayers:', {
-                    current: isAddingPlayers,
-                    selectedGame,
-                    scorecardId
-                  });
                   setIsAddingPlayers(true);
-                  console.log('After setting isAddingPlayers');
                 }}
                 className="w-6 h-6 mr-2 cursor-pointer"
               />
@@ -271,7 +252,7 @@ export function ScorecardScreen() {
             </div>
           </div>
 
-          {isLoading ? (
+          {isRefreshing ? (
             <div className="text-center py-4">Loading players...</div>
           ) : error ? (
             <div className="text-red-600 text-center py-4">{error}</div>
@@ -460,7 +441,7 @@ export function ScorecardScreen() {
         </div>
         <ScorecardList
           scorecards={scorecards}
-          isLoading={isLoading}
+          isLoading={isRefreshing}
           error={error}
           onStartScoring={(id) => {
             setCurrentScorecard(id);

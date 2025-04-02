@@ -98,6 +98,15 @@ export async function deleteTeamPlayer(
   return data;
 }
 
+interface AddTeamPlayerRequest {
+  firstName: string;
+  lastName: string;
+  handicap: number | null;
+  teeID?: string;
+  didPay?: number;
+  venmoName?: string | null;
+}
+
 interface AddTeamPlayerResponse {
   status: {
     code: number;
@@ -106,79 +115,44 @@ interface AddTeamPlayerResponse {
   playerID: string;
 }
 
-interface AddTeamPlayerRequest {
-  teamID: string;
-  firstName: string;
-  lastName: string;
-  handicap: number | null;
-  teeID: string;
-  didPay: number;
-  venmoName: string | null;
-  source?: string;
-  appVersion?: string;
-  deviceID?: string;
-}
-
 export async function addTeamPlayerByName(
-  teamId: string,
-  player: {
-    firstName: string;
-    lastName: string;
-    handicap: string | null;
-    teeID?: string;
-  }
+  teamId: string, 
+  player: AddTeamPlayerRequest
 ): Promise<AddTeamPlayerResponse> {
   try {
-    console.log('Adding player to team with params:', { teamId, player });
-    
-    const payload: AddTeamPlayerRequest = {
-      teamID: teamId,
-      firstName: player.firstName,
-      lastName: player.lastName,
-      handicap: player.handicap ? parseInt(player.handicap) : null,
-      teeID: player.teeID || '',
-      didPay: 0,
-      venmoName: null,
-      source: APP_SOURCE,
-      appVersion: APP_VERSION,
-      deviceID: DEVICE_ID,
-    };
-    
-    console.log('Request payload:', payload);
-    
     const response = await fetch(`${API_BASE}/addTeamPlayerByName`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({
+        teamID: teamId,
+        firstName: player.firstName,
+        lastName: player.lastName,
+        handicap: player.handicap || 0,
+        teeID: player.teeID || '',
+        didPay: 0,
+        venmoName: null,
+        source: APP_SOURCE,
+        appVersion: APP_VERSION,
+        deviceID: DEVICE_ID,
+      }),
     });
 
     if (!response.ok) {
-      console.error('Network error:', {
-        status: response.status,
-        statusText: response.statusText,
-        url: response.url
-      });
-      throw new Error(`Network error: ${response.status} ${response.statusText}`);
+      throw new Error('Failed to add player to team');
     }
 
     const data = await response.json();
-    console.log('API Response:', data);
-
+    
     if (data.status.code !== 0) {
-      console.error('API error:', data.status);
-      throw new Error(`API error: ${data.status.message || 'Unknown error'} (code: ${data.status.code})`);
+      throw new Error(data.status.message || 'Failed to add player to team');
     }
 
     return data;
-  } catch (err) {
-    console.error('Error in addTeamPlayerByName:', err);
-    if (err instanceof Error) {
-      throw err;
-    } else {
-      throw new Error('Unknown error occurred while adding team player');
-    }
+  } catch (error) {
+    console.error('Error adding player to team:', error);
+    throw error;
   }
 }
 
@@ -242,5 +216,85 @@ export async function fetchTeamScores(
   } catch (err) {
     console.error('Error fetching team scores:', err);
     throw err;
+  }
+}
+
+interface AddTeamResponse {
+  status: {
+    code: number;
+    message: string;
+  };
+  teamID: string;
+}
+
+export async function addTeam(gameId: string, teamName: string): Promise<AddTeamResponse> {
+  try {
+    const response = await fetch(`${API_BASE}/addTeam`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        gameID: gameId,
+        teamName: teamName,
+        source: APP_SOURCE,
+        appVersion: APP_VERSION,
+        deviceID: DEVICE_ID
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json() as AddTeamResponse;
+    
+    if (data.status.code !== 0) {
+      throw new Error(data.status.message);
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error adding team:', error);
+    throw error;
+  }
+}
+
+interface DeleteTeamResponse {
+  status: {
+    code: number;
+    message: string;
+  };
+}
+
+export async function deleteTeam(teamId: string): Promise<DeleteTeamResponse> {
+  try {
+    const response = await fetch(`${API_BASE}/deleteTeam`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        teamID: teamId,
+        source: APP_SOURCE,
+        appVersion: APP_VERSION,
+        deviceID: DEVICE_ID,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to delete team');
+    }
+
+    const data = await response.json();
+    
+    if (data.status.code !== 0) {
+      throw new Error(data.status.message || 'Failed to delete team');
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error deleting team:', error);
+    throw error;
   }
 } 

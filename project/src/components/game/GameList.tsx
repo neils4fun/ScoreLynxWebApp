@@ -11,9 +11,6 @@ interface GameListProps {
 export function GameList({ games, onBack }: GameListProps) {
   const { selectedGame } = useGroup();
 
-  // Temporary log to see the data
-  console.log('Games in GameList:', games);
-
   return (
     <div>
       <div className="flex items-center mb-6">
