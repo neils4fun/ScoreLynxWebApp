@@ -399,9 +399,16 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
               >
                 <span>Course/Tee:</span>
                 <div className="flex items-center text-gray-500">
-                  <span className={gameSettings.course ? 'text-black' : ''}>
-                    {gameSettings.course || 'Select Course/Tee'}
-                  </span>
+                  <div className={`${gameSettings.course ? 'text-black' : ''} text-right`}>
+                    {gameSettings.course ? (
+                      <>
+                        <div>{gameSettings.course.split(' - ')[0]}</div>
+                        <div className="text-sm">{gameSettings.course.split(' - ')[1]}</div>
+                      </>
+                    ) : (
+                      'Select Course/Tee'
+                    )}
+                  </div>
                   <ChevronRight className="w-5 h-5 ml-2" />
                 </div>
               </div>
