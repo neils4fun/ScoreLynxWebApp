@@ -132,31 +132,95 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
     }
   }, [game]);
 
-  const [gameSettings, setGameSettings] = useState<GameSettings>({
-    gameDate: null,
-    gameType: '',
-    skinsType: '',
-    course: '',
-    courseId: '',
-    teeId: '',
-    gameAnte: '',
-    skinsAnte: '',
-    payouts: 'No Payouts Set',
-    payoutValues: [],
-    mirrorGame: '',
-    mirrorGameId: null
+  const [gameSettings, setGameSettings] = useState<GameSettings>(() => {
+    // If editing a game, use the game's settings
+    if (isEditMode && game) {
+      return {
+        gameDate: game.date ? new Date(game.date) : null,
+        gameType: game.gameType || '',
+        skinsType: game.skinType || '',
+        course: game ? `${game.courseName} - ${game.teeName}` : '',
+        courseId: game.courseID || '',
+        teeId: game.teeID || '',
+        gameAnte: game.gameAnte || '',
+        skinsAnte: game.skinsAnte || '',
+        payouts: '',
+        payoutValues: [],
+        mirrorGame: game.mirrorGameName || '',
+        mirrorGameId: game.mirrorGameID || null
+      };
+    }
+    
+    // For new games, try to load saved settings
+    const savedSettings = localStorage.getItem('lastGameSettings');
+    if (savedSettings) {
+      const parsed = JSON.parse(savedSettings);
+      return {
+        ...parsed,
+        gameDate: new Date(), // Always use current date for new games
+        mirrorGame: '', // Reset mirror game for new games
+        mirrorGameId: null
+      };
+    }
+
+    // Default settings for first-time use
+    return {
+      gameDate: new Date(),
+      gameType: '',
+      skinsType: '',
+      course: '',
+      courseId: '',
+      teeId: '',
+      gameAnte: '',
+      skinsAnte: '',
+      payouts: '',
+      payoutValues: [],
+      mirrorGame: '',
+      mirrorGameId: null
+    };
   });
 
-  const [gameOptions, setGameOptions] = useState<GameOptions>({
-    showNotifications: false,
-    showPaceOfPlay: false,
-    showLeaderboard: false,
-    showSkins: false,
-    showPayouts: false,
-    useGroupHandicaps: false,
-    strokeOffLowHandicap: false,
-    percentHandicapHaircut: 100
+  const [gameOptions, setGameOptions] = useState<GameOptions>(() => {
+    // If editing a game, use the game's options
+    if (isEditMode && game) {
+      return {
+        showNotifications: game.showNotifications === '1',
+        showPaceOfPlay: game.showPaceOfPlay === '1',
+        showLeaderboard: game.showLeaderBoard === '1',
+        showSkins: game.showSkins === '1',
+        showPayouts: game.showPayouts === '1',
+        useGroupHandicaps: game.useGroupHandicaps === '1',
+        strokeOffLowHandicap: game.strokeOffLow === '1',
+        percentHandicapHaircut: Math.min(parseInt(game.percentHandicap) || 100, 100)
+      };
+    }
+
+    // For new games, try to load saved options
+    const savedOptions = localStorage.getItem('lastGameOptions');
+    if (savedOptions) {
+      return JSON.parse(savedOptions);
+    }
+
+    // Default options for first-time use
+    return {
+      showNotifications: false,
+      showPaceOfPlay: false,
+      showLeaderboard: false,
+      showSkins: false,
+      showPayouts: false,
+      useGroupHandicaps: false,
+      strokeOffLowHandicap: false,
+      percentHandicapHaircut: 100
+    };
   });
+
+  // Save settings when they change
+  useEffect(() => {
+    if (!isEditMode) {
+      localStorage.setItem('lastGameSettings', JSON.stringify(gameSettings));
+      localStorage.setItem('lastGameOptions', JSON.stringify(gameOptions));
+    }
+  }, [gameSettings, gameOptions, isEditMode]);
 
   const [showGameTypeSelector, setShowGameTypeSelector] = useState(false);
   const [showSkinsTypeSelector, setShowSkinsTypeSelector] = useState(false);
