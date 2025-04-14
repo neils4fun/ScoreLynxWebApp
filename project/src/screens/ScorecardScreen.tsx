@@ -8,7 +8,7 @@ import type { ScorecardListResponse } from '../types/scorecard';
 import { ArrowLeft, RotateCw, Trash2 } from 'lucide-react';
 import { ICONS } from '../api/config';
 import type { Player } from '../types/player';
-import { removeScorecardPlayer, addScorecardPlayer } from '../api/playerApi';
+import { removeScorecardPlayer } from '../api/playerApi';
 import { AddGroupPlayersScreen } from './AddGroupPlayersScreen';
 
 export function ScorecardScreen() {
@@ -160,17 +160,13 @@ export function ScorecardScreen() {
     setError(null);
 
     try {
-      // Add players one by one since the API expects a single player
-      for (const player of newPlayers) {
-        await addScorecardPlayer(selectedGame.gameID, scorecardId, player.playerID);
-      }
-      // Return to the scorecard view first
+      // Players are already added in the AddGroupPlayersScreen component
+      // Just return to the scorecard view and refresh the player list
       setIsAddingPlayers(false);
-      // Then refresh the player list
       await loadPlayers();
     } catch (err) {
-      console.error('Error adding players:', err);
-      setError(err instanceof Error ? err.message : 'Failed to add players');
+      console.error('Error refreshing players:', err);
+      setError(err instanceof Error ? err.message : 'Failed to refresh players');
     }
   };
 
@@ -179,13 +175,13 @@ export function ScorecardScreen() {
   };
 
   const handleDeletePlayer = async (playerId: string) => {
-    if (!scorecardId || isDeletingPlayer) return;
+    if (!scorecardId || isDeletingPlayer || !selectedGame) return;
 
     setIsDeletingPlayer(true);
     setError(null);
 
     try {
-      await removeScorecardPlayer(scorecardId, playerId);
+      await removeScorecardPlayer(scorecardId, playerId, selectedGame.gameID);
       await loadPlayers(); // Refresh the list after successful deletion
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to remove player');

@@ -6,6 +6,7 @@ import LeaderboardScreen from './screens/LeaderboardScreen';
 import SettingsScreen from './screens/SettingsScreen';
 import CourseMaintenanceScreen from './screens/CourseMaintenanceScreen';
 import MessagesScreen from './screens/MessagesScreen';
+import { ReportsScreen } from './screens/ReportsScreen';
 import { GameProvider } from './context/GameContext';
 import { GroupProvider } from './context/GroupContext';
 import { ScorecardProvider } from './context/ScorecardContext';
@@ -16,6 +17,7 @@ export default function App() {
   });
   const [showCourseMaintenance, setShowCourseMaintenance] = useState(false);
   const [showMessages, setShowMessages] = useState(false);
+  const [showReports, setShowReports] = useState(false);
 
   useEffect(() => {
     localStorage.setItem('activeTab', activeTab);
@@ -38,6 +40,14 @@ export default function App() {
       );
     }
 
+    if (showReports) {
+      return (
+        <ReportsScreen
+          onBack={() => setShowReports(false)}
+        />
+      );
+    }
+
     switch (activeTab) {
       case 'games':
         return <GamesScreen />;
@@ -50,6 +60,7 @@ export default function App() {
           <SettingsScreen
             onNavigateToCourseMaintenance={() => setShowCourseMaintenance(true)}
             onNavigateToMessages={() => setShowMessages(true)}
+            onNavigateToReports={() => setShowReports(true)}
           />
         );
       default:
@@ -65,7 +76,7 @@ export default function App() {
             <div className="max-w-2xl mx-auto">
               {renderScreen()}
             </div>
-            {!showCourseMaintenance && !showMessages && (
+            {!showCourseMaintenance && !showMessages && !showReports && (
               <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
             )}
           </div>

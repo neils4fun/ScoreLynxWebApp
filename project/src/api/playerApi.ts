@@ -47,9 +47,10 @@ export async function addScorecardPlayer(
 
 export async function removeScorecardPlayer(
   scorecardId: string,
-  playerId: string
+  playerId: string,
+  gameId: string
 ): Promise<void> {
-  const response = await fetch(`${API_BASE}/removeScorecardPlayer`, {
+  const response = await fetch(`${API_BASE}/removeScorecardPlayerByID`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -57,6 +58,7 @@ export async function removeScorecardPlayer(
     body: JSON.stringify({
       scorecardID: scorecardId,
       playerID: playerId,
+      gameID: gameId,
       appVersion: APP_VERSION,
       source: APP_SOURCE,
       deviceID: DEVICE_ID,

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { ArrowLeft, RotateCw, Check } from 'lucide-react';
-import { fetchGroupPlayerList, addGamePlayerByName } from '../api/playerApi';
+import { fetchGroupPlayerList, addGamePlayerByName, addScorecardPlayer } from '../api/playerApi';
 import { addTeamPlayerByName } from '../api/teamApi';
 import { getGamePlayerExScorecardList } from '../api/scorecardApi';
 import type { Player } from '../types/player';
@@ -78,7 +78,12 @@ export function AddGroupPlayersScreen({
     setError(null);
 
     try {
-      if (teamId) {
+      if (scorecardId) {
+        // Add players to scorecard
+        for (const player of selectedPlayers) {
+          await addScorecardPlayer(gameId, scorecardId, player.playerID);
+        }
+      } else if (teamId) {
         // Add players to team
         for (const player of selectedPlayers) {
           await addTeamPlayerByName(teamId, {
