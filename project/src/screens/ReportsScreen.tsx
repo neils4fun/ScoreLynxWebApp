@@ -24,6 +24,8 @@ export function ReportsScreen({ onBack }: { onBack: () => void }) {
   const [teeSheetReport, setTeeSheetReport] = useState<TeeSheetReportResponse | null>(null);
   const [groupPlayerHistoryReport, setGroupPlayerHistoryReport] = useState<GroupPlayerHistoryResponse | null>(null);
   const [showNotAvailableAlert, setShowNotAvailableAlert] = useState(false);
+  const [showSelectionAlert, setShowSelectionAlert] = useState(false);
+  const [selectionAlertMessage, setSelectionAlertMessage] = useState('');
 
   // Clear error after 5 seconds
   useEffect(() => {
@@ -44,6 +46,16 @@ export function ReportsScreen({ onBack }: { onBack: () => void }) {
       return () => clearTimeout(timer);
     }
   }, [showNotAvailableAlert]);
+
+  // Clear selection alert after 5 seconds
+  useEffect(() => {
+    if (showSelectionAlert) {
+      const timer = setTimeout(() => {
+        setShowSelectionAlert(false);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [showSelectionAlert]);
 
   const reportOptions: ReportOption[] = [
     {
@@ -90,10 +102,12 @@ export function ReportsScreen({ onBack }: { onBack: () => void }) {
   const handleGenerateReport = async (reportId: string) => {
     setError(null);
     setShowNotAvailableAlert(false);
+    setShowSelectionAlert(false);
     
     if (reportId === 'game-tee-sheet') {
       if (!selectedGame) {
-        setError('Please select a game first');
+        setSelectionAlertMessage('Please use the game tab to select a game before generating this report.');
+        setShowSelectionAlert(true);
         return;
       }
       
@@ -112,7 +126,8 @@ export function ReportsScreen({ onBack }: { onBack: () => void }) {
     
     if (reportId === 'group-activity') {
       if (!selectedGroup) {
-        setError('Please select a group first. Use the game tab to select a group.');
+        setSelectionAlertMessage('Please use the game tab to select a group before generating this report.');
+        setShowSelectionAlert(true);
         return;
       }
       
@@ -257,6 +272,29 @@ export function ReportsScreen({ onBack }: { onBack: () => void }) {
                 <button 
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg"
                   onClick={() => setShowNotAvailableAlert(false)}
+                >
+                  OK
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Selection Alert */}
+        {showSelectionAlert && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+            <div className="bg-white p-6 rounded-lg w-full max-w-md">
+              <div className="flex items-center mb-4">
+                <AlertCircle className="w-6 h-6 text-blue-500 mr-2" />
+                <h2 className="text-lg font-bold">Selection Required</h2>
+              </div>
+              <p className="text-gray-600 mb-4">
+                {selectionAlertMessage}
+              </p>
+              <div className="flex justify-end">
+                <button 
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg"
+                  onClick={() => setShowSelectionAlert(false)}
                 >
                   OK
                 </button>

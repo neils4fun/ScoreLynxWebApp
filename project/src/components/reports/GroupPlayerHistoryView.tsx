@@ -42,9 +42,6 @@ export function GroupPlayerHistoryView({ report, onBack }: GroupPlayerHistoryVie
                     Avg Gross
                   </th>
                   <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Avg Net
-                  </th>
-                  <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Avg Place
                   </th>
                 </tr>
@@ -63,9 +60,6 @@ export function GroupPlayerHistoryView({ report, onBack }: GroupPlayerHistoryVie
                     </td>
                     <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
                       {parseFloat(player["avg(gross)"]).toFixed(1)}
-                    </td>
-                    <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
-                      {parseFloat(player["avg(net)"]).toFixed(1)}
                     </td>
                     <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
                       {parseFloat(player["avg(place)"]).toFixed(1)}
