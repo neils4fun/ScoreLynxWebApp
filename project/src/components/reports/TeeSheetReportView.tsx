@@ -1,4 +1,4 @@
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Download } from 'lucide-react';
 import type { TeeSheetReportResponse, TeeSheetScorecard, TeeSheetPlayer } from '../../api/reportsApi';
 
 interface TeeSheetReportViewProps {
@@ -7,18 +7,79 @@ interface TeeSheetReportViewProps {
 }
 
 export function TeeSheetReportView({ report, onBack }: TeeSheetReportViewProps) {
+  const handleExportCSV = () => {
+    // Create CSV content
+    let csvContent = `Course,${report.courseName}\n`;
+    csvContent += `Tee,${report.teeName}\n`;
+    csvContent += `Game,${report.gameType}\n`;
+    csvContent += `Skins,${report.skinType}\n\n`;
+    
+    // Add header row for scorecards
+    csvContent += 'Scorecard,';
+    
+    // Find the maximum number of players in any scorecard
+    const maxPlayers = Math.max(...report.scorecards.map(sc => sc.players.length));
+    
+    // Add player headers (Player 1, Handicap 1, Tee 1, etc.)
+    for (let i = 0; i < maxPlayers; i++) {
+      csvContent += `Player ${i+1},Handicap ${i+1},Tee ${i+1}${i < maxPlayers - 1 ? ',' : ''}`;
+    }
+    csvContent += '\n';
+    
+    // Add each scorecard as a row
+    report.scorecards.forEach(scorecard => {
+      csvContent += `${scorecard.name},`;
+      
+      // Add player data
+      for (let i = 0; i < maxPlayers; i++) {
+        if (i < scorecard.players.length) {
+          const player = scorecard.players[i];
+          csvContent += `${player.firstName} ${player.lastName},${player.handicap},${player.tee.name}`;
+        } else {
+          csvContent += ',,';
+        }
+        
+        if (i < maxPlayers - 1) {
+          csvContent += ',';
+        }
+      }
+      
+      csvContent += '\n';
+    });
+    
+    // Create a blob and download link
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `tee_sheet_report_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="max-w-md mx-auto h-screen flex flex-col">
       {/* Header */}
       <div className="bg-white p-4 border-b border-gray-200">
-        <div className="flex items-center">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <button
+              onClick={onBack}
+              className="p-2 hover:bg-gray-100 rounded-full"
+            >
+              <ArrowLeft className="w-6 h-6" />
+            </button>
+            <h1 className="text-xl font-bold ml-4">Tee Sheet Report</h1>
+          </div>
           <button
-            onClick={onBack}
-            className="p-2 hover:bg-gray-100 rounded-full"
+            onClick={handleExportCSV}
+            className="flex items-center px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
           >
-            <ArrowLeft className="w-6 h-6" />
+            <Download className="w-4 h-4 mr-1" />
+            Export
           </button>
-          <h1 className="text-xl font-bold ml-4">Tee Sheet Report</h1>
         </div>
       </div>
 

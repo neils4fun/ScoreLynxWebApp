@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react';
 import { ArrowLeft, FileText, Users, Calendar, BarChart2, Clock, AlertCircle } from 'lucide-react';
 import { useGroup } from '../context/GroupContext';
 import { useGame } from '../context/GameContext';
-import { getTeeSheetReport } from '../api/reportsApi';
+import { getTeeSheetReport, getGroupPlayerHistoryReport } from '../api/reportsApi';
 import { TeeSheetReportView } from '../components/reports/TeeSheetReportView';
-import type { TeeSheetReportResponse } from '../api/reportsApi';
+import { GroupPlayerHistoryView } from '../components/reports/GroupPlayerHistoryView';
+import type { TeeSheetReportResponse, GroupPlayerHistoryResponse } from '../api/reportsApi';
 
 interface ReportOption {
   id: string;
@@ -21,6 +22,7 @@ export function ReportsScreen({ onBack }: { onBack: () => void }) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [teeSheetReport, setTeeSheetReport] = useState<TeeSheetReportResponse | null>(null);
+  const [groupPlayerHistoryReport, setGroupPlayerHistoryReport] = useState<GroupPlayerHistoryResponse | null>(null);
   const [showNotAvailableAlert, setShowNotAvailableAlert] = useState(false);
 
   // Clear error after 5 seconds
@@ -52,6 +54,13 @@ export function ReportsScreen({ onBack }: { onBack: () => void }) {
       category: 'game'
     },
     {
+      id: 'group-activity',
+      title: 'Group Player History',
+      description: 'Aggregate player history for a group',
+      icon: <Calendar className="w-6 h-6" />,
+      category: 'group'
+    },
+    {
       id: 'game-summary',
       title: 'Game Summary',
       description: 'Detailed summary of a specific game including scores, payouts, and statistics',
@@ -64,13 +73,6 @@ export function ReportsScreen({ onBack }: { onBack: () => void }) {
       description: 'Track player performance across multiple games',
       icon: <Users className="w-6 h-6" />,
       category: 'game'
-    },
-    {
-      id: 'group-activity',
-      title: 'Group Activity',
-      description: 'Overview of group activity including games played and member participation',
-      icon: <Calendar className="w-6 h-6" />,
-      category: 'group'
     },
     {
       id: 'leaderboard-history',
@@ -108,6 +110,25 @@ export function ReportsScreen({ onBack }: { onBack: () => void }) {
       return;
     }
     
+    if (reportId === 'group-activity') {
+      if (!selectedGroup) {
+        setError('Please select a group first. Use the game tab to select a group.');
+        return;
+      }
+      
+      // Generate the group player history report
+      setIsLoading(true);
+      try {
+        const report = await getGroupPlayerHistoryReport(selectedGroup.groupID);
+        setGroupPlayerHistoryReport(report);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to generate group player history report');
+      } finally {
+        setIsLoading(false);
+      }
+      return;
+    }
+    
     // For all other report types, display a message
     setShowNotAvailableAlert(true);
   };
@@ -117,6 +138,15 @@ export function ReportsScreen({ onBack }: { onBack: () => void }) {
       <TeeSheetReportView
         report={teeSheetReport}
         onBack={() => setTeeSheetReport(null)}
+      />
+    );
+  }
+
+  if (groupPlayerHistoryReport) {
+    return (
+      <GroupPlayerHistoryView
+        report={groupPlayerHistoryReport}
+        onBack={() => setGroupPlayerHistoryReport(null)}
       />
     );
   }
