@@ -5,6 +5,7 @@ import { useGame } from '../context/GameContext';
 import { getTeeSheetReport, getGroupPlayerHistoryReport } from '../api/reportsApi';
 import { TeeSheetReportView } from '../components/reports/TeeSheetReportView';
 import { GroupPlayerHistoryView } from '../components/reports/GroupPlayerHistoryView';
+import { DateRangeSelector } from '../components/reports/DateRangeSelector';
 import type { TeeSheetReportResponse, GroupPlayerHistoryResponse } from '../api/reportsApi';
 
 interface ReportOption {
@@ -26,6 +27,8 @@ export function ReportsScreen({ onBack }: { onBack: () => void }) {
   const [showNotAvailableAlert, setShowNotAvailableAlert] = useState(false);
   const [showSelectionAlert, setShowSelectionAlert] = useState(false);
   const [selectionAlertMessage, setSelectionAlertMessage] = useState('');
+  const [showDateRangeSelector, setShowDateRangeSelector] = useState(false);
+  const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
 
   // Clear error after 5 seconds
   useEffect(() => {
@@ -131,21 +134,32 @@ export function ReportsScreen({ onBack }: { onBack: () => void }) {
         return;
       }
       
-      // Generate the group player history report
-      setIsLoading(true);
-      try {
-        const report = await getGroupPlayerHistoryReport(selectedGroup.groupID);
-        setGroupPlayerHistoryReport(report);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to generate group player history report');
-      } finally {
-        setIsLoading(false);
-      }
+      // Show date range selector for group player history report
+      setSelectedReportId(reportId);
+      setShowDateRangeSelector(true);
       return;
     }
     
     // For all other report types, display a message
     setShowNotAvailableAlert(true);
+  };
+
+  const handleDateRangeConfirm = async (startDate: string | undefined, endDate: string | undefined) => {
+    setShowDateRangeSelector(false);
+    
+    if (!selectedGroup || !selectedReportId) {
+      return;
+    }
+    
+    setIsLoading(true);
+    try {
+      const report = await getGroupPlayerHistoryReport(selectedGroup.groupID, startDate, endDate);
+      setGroupPlayerHistoryReport(report);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to generate group player history report');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (teeSheetReport) {
@@ -301,6 +315,14 @@ export function ReportsScreen({ onBack }: { onBack: () => void }) {
               </div>
             </div>
           </div>
+        )}
+
+        {/* Date Range Selector */}
+        {showDateRangeSelector && (
+          <DateRangeSelector
+            onConfirm={handleDateRangeConfirm}
+            onCancel={() => setShowDateRangeSelector(false)}
+          />
         )}
       </div>
     </div>

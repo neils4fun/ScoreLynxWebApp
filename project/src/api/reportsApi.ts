@@ -106,21 +106,39 @@ export async function getTeeSheetReport(gameId: string): Promise<TeeSheetReportR
 /**
  * Fetches the group player history report for a specific group
  * @param groupId The ID of the group to get the player history for
+ * @param startDate Optional start date in YYYYMMDD format
+ * @param endDate Optional end date in YYYYMMDD format
  * @returns Promise with the group player history report data
  */
-export async function getGroupPlayerHistoryReport(groupId: string): Promise<GroupPlayerHistoryResponse> {
+export async function getGroupPlayerHistoryReport(
+  groupId: string, 
+  startDate?: string, 
+  endDate?: string
+): Promise<GroupPlayerHistoryResponse> {
   try {
+    // Create the request body with required parameters
+    const requestBody: Record<string, string> = {
+      groupID: groupId,
+      source: APP_SOURCE,
+      appVersion: APP_VERSION,
+      deviceID: DEVICE_ID,
+    };
+
+    // Add optional date parameters if provided
+    if (startDate) {
+      requestBody.startDate = startDate;
+    }
+    
+    if (endDate) {
+      requestBody.endDate = endDate;
+    }
+
     const response = await fetch(`${API_BASE}/getGroupPlayerHistoryReport`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        groupID: groupId,
-        source: APP_SOURCE,
-        appVersion: APP_VERSION,
-        deviceID: DEVICE_ID,
-      }),
+      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {
