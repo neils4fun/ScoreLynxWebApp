@@ -1,25 +1,57 @@
-import { useState, useRef } from 'react';
-import { Calendar as CalendarIcon, X } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Calendar as CalendarIcon, X, Search } from 'lucide-react';
 
 interface DateRangeSelectorProps {
-  onConfirm: (startDate: string | undefined, endDate: string | undefined) => void;
+  onConfirm: (startDate: string | undefined, endDate: string | undefined, nameFilter: string | undefined) => void;
   onCancel: () => void;
+  initialStartDate?: string;
+  initialEndDate?: string;
+  initialNameFilter?: string;
 }
 
-export function DateRangeSelector({ onConfirm, onCancel }: DateRangeSelectorProps) {
+export function DateRangeSelector({ 
+  onConfirm, 
+  onCancel, 
+  initialStartDate, 
+  initialEndDate,
+  initialNameFilter
+}: DateRangeSelectorProps) {
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
+  const [nameFilter, setNameFilter] = useState<string>(initialNameFilter || '');
   
   // Refs for the date inputs
   const startDateInputRef = useRef<HTMLInputElement>(null);
   const endDateInputRef = useRef<HTMLInputElement>(null);
 
+  // Initialize with provided values
+  useEffect(() => {
+    if (initialStartDate) {
+      // Convert YYYYMMDD to YYYY-MM-DD format
+      const formattedDate = initialStartDate.replace(
+        /(\d{4})(\d{2})(\d{2})/, 
+        '$1-$2-$3'
+      );
+      setStartDate(formattedDate);
+    }
+    
+    if (initialEndDate) {
+      // Convert YYYYMMDD to YYYY-MM-DD format
+      const formattedDate = initialEndDate.replace(
+        /(\d{4})(\d{2})(\d{2})/, 
+        '$1-$2-$3'
+      );
+      setEndDate(formattedDate);
+    }
+  }, [initialStartDate, initialEndDate]);
+
   const handleConfirm = () => {
     // Convert empty strings to undefined
     const formattedStartDate = startDate ? startDate.replace(/-/g, '') : undefined;
     const formattedEndDate = endDate ? endDate.replace(/-/g, '') : undefined;
+    const formattedNameFilter = nameFilter.trim() || undefined;
     
-    onConfirm(formattedStartDate, formattedEndDate);
+    onConfirm(formattedStartDate, formattedEndDate, formattedNameFilter);
   };
 
   // Function to handle date input changes
@@ -30,6 +62,11 @@ export function DateRangeSelector({ onConfirm, onCancel }: DateRangeSelectorProp
     } else {
       setEndDate(value);
     }
+  };
+
+  // Function to handle name filter changes
+  const handleNameFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNameFilter(e.target.value);
   };
 
   // Function to trigger date picker
@@ -59,7 +96,7 @@ export function DateRangeSelector({ onConfirm, onCancel }: DateRangeSelectorProp
           </p>
         </div>
         
-        <div className="grid grid-cols-2 gap-4 mb-6">
+        <div className="grid grid-cols-2 gap-4 mb-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Start Date
@@ -102,6 +139,22 @@ export function DateRangeSelector({ onConfirm, onCancel }: DateRangeSelectorProp
                 <CalendarIcon className="w-5 h-5 text-gray-400" />
               </button>
             </div>
+          </div>
+        </div>
+        
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Filter by Player Name (optional)
+          </label>
+          <div className="relative">
+            <input
+              type="text"
+              className="w-full p-2 border border-gray-300 rounded-md pl-8"
+              placeholder="Enter player name"
+              value={nameFilter}
+              onChange={handleNameFilterChange}
+            />
+            <Search className="w-4 h-4 text-gray-400 absolute left-2 top-3" />
           </div>
         </div>
         

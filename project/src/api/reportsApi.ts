@@ -108,12 +108,14 @@ export async function getTeeSheetReport(gameId: string): Promise<TeeSheetReportR
  * @param groupId The ID of the group to get the player history for
  * @param startDate Optional start date in YYYYMMDD format
  * @param endDate Optional end date in YYYYMMDD format
+ * @param nameFilter Optional filter to search for players by name
  * @returns Promise with the group player history report data
  */
 export async function getGroupPlayerHistoryReport(
   groupId: string, 
   startDate?: string, 
-  endDate?: string
+  endDate?: string,
+  nameFilter?: string
 ): Promise<GroupPlayerHistoryResponse> {
   try {
     // Create the request body with required parameters
@@ -131,6 +133,11 @@ export async function getGroupPlayerHistoryReport(
     
     if (endDate) {
       requestBody.endDate = endDate;
+    }
+    
+    // Add name filter if provided
+    if (nameFilter) {
+      requestBody.nameFilter = nameFilter;
     }
 
     const response = await fetch(`${API_BASE}/getGroupPlayerHistoryReport`, {

@@ -29,6 +29,24 @@ export function ReportsScreen({ onBack }: { onBack: () => void }) {
   const [selectionAlertMessage, setSelectionAlertMessage] = useState('');
   const [showDateRangeSelector, setShowDateRangeSelector] = useState(false);
   const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
+  
+  // State to store the last used date range and name filter
+  const [lastFilterSettings, setLastFilterSettings] = useState<{
+    startDate: string | undefined;
+    endDate: string | undefined;
+    nameFilter: string | undefined;
+  }>(() => {
+    // Try to load from localStorage
+    const saved = localStorage.getItem('lastGroupPlayerHistoryFilters');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error('Failed to parse saved filter settings:', e);
+      }
+    }
+    return { startDate: undefined, endDate: undefined, nameFilter: undefined };
+  });
 
   // Clear error after 5 seconds
   useEffect(() => {
@@ -144,16 +162,30 @@ export function ReportsScreen({ onBack }: { onBack: () => void }) {
     setShowNotAvailableAlert(true);
   };
 
-  const handleDateRangeConfirm = async (startDate: string | undefined, endDate: string | undefined) => {
+  const handleDateRangeConfirm = async (
+    startDate: string | undefined, 
+    endDate: string | undefined,
+    nameFilter: string | undefined
+  ) => {
     setShowDateRangeSelector(false);
     
     if (!selectedGroup || !selectedReportId) {
       return;
     }
     
+    // Save the filter settings to localStorage
+    const filterSettings = { startDate, endDate, nameFilter };
+    setLastFilterSettings(filterSettings);
+    localStorage.setItem('lastGroupPlayerHistoryFilters', JSON.stringify(filterSettings));
+    
     setIsLoading(true);
     try {
-      const report = await getGroupPlayerHistoryReport(selectedGroup.groupID, startDate, endDate);
+      const report = await getGroupPlayerHistoryReport(
+        selectedGroup.groupID, 
+        startDate, 
+        endDate,
+        nameFilter
+      );
       setGroupPlayerHistoryReport(report);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to generate group player history report');
@@ -322,6 +354,9 @@ export function ReportsScreen({ onBack }: { onBack: () => void }) {
           <DateRangeSelector
             onConfirm={handleDateRangeConfirm}
             onCancel={() => setShowDateRangeSelector(false)}
+            initialStartDate={lastFilterSettings.startDate}
+            initialEndDate={lastFilterSettings.endDate}
+            initialNameFilter={lastFilterSettings.nameFilter}
           />
         )}
       </div>
