@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Calendar, Clock, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, AlertCircle, User } from 'lucide-react';
 import { useGroup } from '../context/GroupContext';
 import { useGame } from '../context/GameContext';
-import { getTeeSheetReport, getGroupPlayerHistoryReport } from '../api/reportsApi';
+import { getTeeSheetReport, getGroupPlayerHistoryReport, getGroupPlayerDetailHistoryReport } from '../api/reportsApi';
 import { TeeSheetReportView } from '../components/reports/TeeSheetReportView';
 import { GroupPlayerHistoryView } from '../components/reports/GroupPlayerHistoryView';
+import { GroupPlayerDetailHistoryView } from '../components/reports/GroupPlayerDetailHistoryView';
 import { DateRangeSelector } from '../components/reports/DateRangeSelector';
-import type { TeeSheetReportResponse, GroupPlayerHistoryResponse } from '../api/reportsApi';
+import type { TeeSheetReportResponse, GroupPlayerHistoryResponse, GroupPlayerDetailHistoryResponse } from '../api/reportsApi';
 
 interface ReportOption {
   id: string;
@@ -24,6 +25,7 @@ export function ReportsScreen({ onBack }: { onBack: () => void }) {
   const [error, setError] = useState<string | null>(null);
   const [teeSheetReport, setTeeSheetReport] = useState<TeeSheetReportResponse | null>(null);
   const [groupPlayerHistoryReport, setGroupPlayerHistoryReport] = useState<GroupPlayerHistoryResponse | null>(null);
+  const [groupPlayerDetailHistoryReport, setGroupPlayerDetailHistoryReport] = useState<GroupPlayerDetailHistoryResponse | null>(null);
   const [showNotAvailableAlert, setShowNotAvailableAlert] = useState(false);
   const [showSelectionAlert, setShowSelectionAlert] = useState(false);
   const [selectionAlertMessage, setSelectionAlertMessage] = useState('');
@@ -92,6 +94,13 @@ export function ReportsScreen({ onBack }: { onBack: () => void }) {
       description: 'Aggregate player history for a group',
       icon: <Calendar className="w-6 h-6" />,
       category: 'group'
+    },
+    {
+      id: 'group-player-detail',
+      title: 'Group Player Detail History',
+      description: 'Game by game history for a specific player',
+      icon: <User className="w-6 h-6" />,
+      category: 'group'
     }
   ];
 
@@ -124,7 +133,7 @@ export function ReportsScreen({ onBack }: { onBack: () => void }) {
       return;
     }
     
-    if (reportId === 'group-activity') {
+    if (reportId === 'group-activity' || reportId === 'group-player-detail') {
       if (!selectedGroup) {
         setSelectionAlertMessage('Please use the game tab to select a group before generating this report.');
         setShowSelectionAlert(true);
@@ -159,15 +168,25 @@ export function ReportsScreen({ onBack }: { onBack: () => void }) {
     
     setIsLoading(true);
     try {
-      const report = await getGroupPlayerHistoryReport(
-        selectedGroup.groupID, 
-        startDate, 
-        endDate,
-        nameFilter
-      );
-      setGroupPlayerHistoryReport(report);
+      if (selectedReportId === 'group-activity') {
+        const report = await getGroupPlayerHistoryReport(
+          selectedGroup.groupID, 
+          startDate, 
+          endDate,
+          nameFilter
+        );
+        setGroupPlayerHistoryReport(report);
+      } else if (selectedReportId === 'group-player-detail') {
+        const report = await getGroupPlayerDetailHistoryReport(
+          selectedGroup.groupID, 
+          startDate, 
+          endDate,
+          nameFilter
+        );
+        setGroupPlayerDetailHistoryReport(report);
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to generate group player history report');
+      setError(err instanceof Error ? err.message : 'Failed to generate report');
     } finally {
       setIsLoading(false);
     }
@@ -187,6 +206,15 @@ export function ReportsScreen({ onBack }: { onBack: () => void }) {
       <GroupPlayerHistoryView
         report={groupPlayerHistoryReport}
         onBack={() => setGroupPlayerHistoryReport(null)}
+      />
+    );
+  }
+
+  if (groupPlayerDetailHistoryReport) {
+    return (
+      <GroupPlayerDetailHistoryView
+        report={groupPlayerDetailHistoryReport}
+        onBack={() => setGroupPlayerDetailHistoryReport(null)}
       />
     );
   }

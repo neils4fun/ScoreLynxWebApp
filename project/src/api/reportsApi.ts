@@ -66,6 +66,35 @@ export interface GroupPlayerHistoryResponse {
   results: GroupPlayerHistoryPlayer[];
 }
 
+export interface GroupPlayerDetailHistoryResponse {
+  status: {
+    code: number;
+    message: string;
+  };
+  results: {
+    gameKey: string;
+    Group: string;
+    Last: string;
+    First: string;
+    handicap: string;
+    gross: string;
+    points: string;
+    quota: string;
+    place: string;
+    gamePayout: string;
+    skinsPayout: string;
+    totalPayout: string;
+    Net: string;
+    doubleEagles: string;
+    eagles: string;
+    birdies: string;
+    pars: string;
+    bogeys: string;
+    doubleBogeys: string;
+    others: string;
+  }[];
+}
+
 /**
  * Fetches the tee sheet report for a specific game
  * @param gameId The ID of the game to get the tee sheet for
@@ -163,4 +192,49 @@ export async function getGroupPlayerHistoryReport(
     console.error('Error fetching group player history report:', error);
     throw error;
   }
+}
+
+/**
+ * Fetches a detailed game-by-game history report for a specific player in a group
+ * @param groupId - The ID of the group
+ * @param startDate - Optional start date in YYYYMMDD format
+ * @param endDate - Optional end date in YYYYMMDD format
+ * @param nameFilter - Optional filter to search for a specific player by name
+ * @returns Promise with the group player detail history report data
+ */
+export async function getGroupPlayerDetailHistoryReport(
+  groupId: string,
+  startDate?: string,
+  endDate?: string,
+  nameFilter?: string
+): Promise<GroupPlayerDetailHistoryResponse> {
+  const requestBody: Record<string, string> = {
+    groupID: groupId
+  };
+
+  if (startDate) {
+    requestBody.startDate = startDate;
+  }
+
+  if (endDate) {
+    requestBody.endDate = endDate;
+  }
+
+  if (nameFilter) {
+    requestBody.nameFilter = nameFilter;
+  }
+
+  const response = await fetch(`${API_BASE}/getGroupPlayerDetailHistoryReport`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(requestBody),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch group player detail history report: ${response.statusText}`);
+  }
+
+  return response.json();
 } 
