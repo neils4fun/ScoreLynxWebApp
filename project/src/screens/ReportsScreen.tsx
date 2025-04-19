@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, FileText, Users, Calendar, BarChart2, Clock, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, AlertCircle } from 'lucide-react';
 import { useGroup } from '../context/GroupContext';
 import { useGame } from '../context/GameContext';
 import { getTeeSheetReport, getGroupPlayerHistoryReport } from '../api/reportsApi';
@@ -91,27 +91,6 @@ export function ReportsScreen({ onBack }: { onBack: () => void }) {
       title: 'Group Player History',
       description: 'Aggregate player history for a group',
       icon: <Calendar className="w-6 h-6" />,
-      category: 'group'
-    },
-    {
-      id: 'game-summary',
-      title: 'Game Summary',
-      description: 'Detailed summary of a specific game including scores, payouts, and statistics',
-      icon: <FileText className="w-6 h-6" />,
-      category: 'game'
-    },
-    {
-      id: 'player-performance',
-      title: 'Player Performance',
-      description: 'Track player performance across multiple games',
-      icon: <Users className="w-6 h-6" />,
-      category: 'game'
-    },
-    {
-      id: 'leaderboard-history',
-      title: 'Leaderboard History',
-      description: 'Historical leaderboard data for the group',
-      icon: <BarChart2 className="w-6 h-6" />,
       category: 'group'
     }
   ];
