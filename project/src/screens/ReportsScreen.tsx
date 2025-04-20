@@ -22,6 +22,7 @@ export function ReportsScreen({ onBack }: { onBack: () => void }) {
   const { selectedGame } = useGame();
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'game' | 'group'>('all');
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingReportId, setLoadingReportId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [teeSheetReport, setTeeSheetReport] = useState<TeeSheetReportResponse | null>(null);
   const [groupPlayerHistoryReport, setGroupPlayerHistoryReport] = useState<GroupPlayerHistoryResponse | null>(null);
@@ -122,6 +123,7 @@ export function ReportsScreen({ onBack }: { onBack: () => void }) {
       
       // Directly generate the report without showing the confirmation modal
       setIsLoading(true);
+      setLoadingReportId(reportId);
       try {
         const report = await getTeeSheetReport(selectedGame.gameID);
         setTeeSheetReport(report);
@@ -129,6 +131,7 @@ export function ReportsScreen({ onBack }: { onBack: () => void }) {
         setError(err instanceof Error ? err.message : 'Failed to generate tee sheet report');
       } finally {
         setIsLoading(false);
+        setLoadingReportId(null);
       }
       return;
     }
@@ -167,6 +170,7 @@ export function ReportsScreen({ onBack }: { onBack: () => void }) {
     localStorage.setItem('lastGroupPlayerHistoryFilters', JSON.stringify(filterSettings));
     
     setIsLoading(true);
+    setLoadingReportId(selectedReportId);
     try {
       if (selectedReportId === 'group-activity') {
         const report = await getGroupPlayerHistoryReport(
@@ -189,6 +193,7 @@ export function ReportsScreen({ onBack }: { onBack: () => void }) {
       setError(err instanceof Error ? err.message : 'Failed to generate report');
     } finally {
       setIsLoading(false);
+      setLoadingReportId(null);
     }
   };
 
@@ -291,7 +296,7 @@ export function ReportsScreen({ onBack }: { onBack: () => void }) {
                       onClick={() => handleGenerateReport(report.id)}
                       disabled={isLoading}
                     >
-                      {isLoading && selectedGame ? 'Generating...' : 'Generate Report'}
+                      {loadingReportId === report.id ? 'Generating Report...' : 'Generate Report'}
                     </button>
                   </div>
                 </div>
