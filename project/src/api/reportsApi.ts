@@ -1,4 +1,4 @@
-import { API_BASE, APP_SOURCE, DEVICE_ID, APP_VERSION } from './config';
+import { API_BASE } from './config';
 
 // Define types for the tee sheet report response
 export interface TeeSheetScore {
@@ -101,35 +101,23 @@ export interface GroupPlayerDetailHistoryResponse {
  * @returns Promise with the tee sheet report data
  */
 export async function getTeeSheetReport(gameId: string): Promise<TeeSheetReportResponse> {
-  try {
-    const response = await fetch(`${API_BASE}/getTeeSheetReport`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        gameID: gameId,
-        source: APP_SOURCE,
-        appVersion: APP_VERSION,
-        deviceID: DEVICE_ID,
-      }),
-    });
+  const requestBody = {
+    gameID: gameId
+  };
 
-    if (!response.ok) {
-      throw new Error('Failed to fetch tee sheet report');
-    }
+  const response = await fetch(`${API_BASE}/getTeeSheetReport`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(requestBody),
+  });
 
-    const data = await response.json();
-    
-    if (data.status.code !== 0) {
-      throw new Error(data.status.message || 'Failed to fetch tee sheet report');
-    }
-
-    return data;
-  } catch (error) {
-    console.error('Error fetching tee sheet report:', error);
-    throw error;
+  if (!response.ok) {
+    throw new Error('Failed to fetch tee sheet report');
   }
+
+  return response.json();
 }
 
 /**
@@ -141,57 +129,40 @@ export async function getTeeSheetReport(gameId: string): Promise<TeeSheetReportR
  * @returns Promise with the group player history report data
  */
 export async function getGroupPlayerHistoryReport(
-  groupId: string, 
-  startDate?: string, 
+  groupId: string,
+  startDate?: string,
   endDate?: string,
   nameFilter?: string
 ): Promise<GroupPlayerHistoryResponse> {
-  try {
-    // Create the request body with required parameters
-    const requestBody: Record<string, string> = {
-      groupID: groupId,
-      source: APP_SOURCE,
-      appVersion: APP_VERSION,
-      deviceID: DEVICE_ID,
-    };
+  const requestBody: any = {
+    groupID: groupId
+  };
 
-    // Add optional date parameters if provided
-    if (startDate) {
-      requestBody.startDate = startDate;
-    }
-    
-    if (endDate) {
-      requestBody.endDate = endDate;
-    }
-    
-    // Add name filter if provided
-    if (nameFilter) {
-      requestBody.nameFilter = nameFilter;
-    }
-
-    const response = await fetch(`${API_BASE}/getGroupPlayerHistoryReport`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(requestBody),
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch group player history report');
-    }
-
-    const data = await response.json();
-    
-    if (data.status.code !== 0) {
-      throw new Error(data.status.message || 'Failed to fetch group player history report');
-    }
-
-    return data;
-  } catch (error) {
-    console.error('Error fetching group player history report:', error);
-    throw error;
+  if (startDate) {
+    requestBody.startDate = startDate;
   }
+
+  if (endDate) {
+    requestBody.endDate = endDate;
+  }
+
+  if (nameFilter) {
+    requestBody.nameFilter = nameFilter;
+  }
+
+  const response = await fetch(`${API_BASE}/getGroupPlayerHistoryReport`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(requestBody),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch group player history report');
+  }
+
+  return response.json();
 }
 
 /**
@@ -208,7 +179,7 @@ export async function getGroupPlayerDetailHistoryReport(
   endDate?: string,
   nameFilter?: string
 ): Promise<GroupPlayerDetailHistoryResponse> {
-  const requestBody: Record<string, string> = {
+  const requestBody: any = {
     groupID: groupId
   };
 
@@ -233,8 +204,62 @@ export async function getGroupPlayerDetailHistoryReport(
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch group player detail history report: ${response.statusText}`);
+    throw new Error('Failed to fetch group player detail history report');
   }
 
   return response.json();
+}
+
+/**
+ * Fetches a player hole by hole history report
+ * @param lastName The last name of the player (required)
+ * @param firstName The first name of the player (required)
+ * @returns The player hole by hole history report data
+ * @throws Error if firstName or lastName is empty
+ */
+export async function getPlayerHoleByHoleHistoryReport(
+  lastName: string,
+  firstName: string
+): Promise<PlayerHoleByHoleHistoryResponse> {
+  // Validate that both firstName and lastName are provided
+  if (!firstName || !lastName) {
+    throw new Error('Both first name and last name are required');
+  }
+
+  const requestBody = {
+    lastName,
+    firstName
+  };
+
+  const response = await fetch(`${API_BASE}/getPlayerHoleByHoleHistoryReport`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(requestBody),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch player hole by hole history report');
+  }
+
+  return response.json();
+}
+
+// Add the new response type for the Player Hole by Hole History report
+export interface PlayerHoleByHoleHistoryResult {
+  rounds: string;
+  course: string;
+  lastName: string;
+  firstName: string;
+  hole: string;
+  average: string;
+}
+
+export interface PlayerHoleByHoleHistoryResponse {
+  status: {
+    code: number;
+    message: string;
+  };
+  results: PlayerHoleByHoleHistoryResult[];
 } 
