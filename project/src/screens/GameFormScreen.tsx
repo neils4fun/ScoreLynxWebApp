@@ -50,6 +50,7 @@ interface GameOptions {
   useGroupHandicaps: boolean;
   strokeOffLowHandicap: boolean;
   percentHandicapHaircut: number;
+  addRakeToPayouts: boolean;
 }
 
 export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps) {
@@ -94,7 +95,8 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
         showPayouts: game.showPayouts === '1',
         useGroupHandicaps: game.useGroupHandicaps === '1',
         strokeOffLowHandicap: game.strokeOffLow === '1',
-        percentHandicapHaircut: Math.min(parseInt(game.percentHandicap) || 100, 100)
+        percentHandicapHaircut: Math.min(parseInt(game.percentHandicap) || 100, 100),
+        addRakeToPayouts: game.addRakeToPayouts === '1'
       });
 
       // Fetch payouts list when editing a game
@@ -191,14 +193,20 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
         showPayouts: game.showPayouts === '1',
         useGroupHandicaps: game.useGroupHandicaps === '1',
         strokeOffLowHandicap: game.strokeOffLow === '1',
-        percentHandicapHaircut: Math.min(parseInt(game.percentHandicap) || 100, 100)
+        percentHandicapHaircut: Math.min(parseInt(game.percentHandicap) || 100, 100),
+        addRakeToPayouts: game.addRakeToPayouts === '1'
       };
     }
 
     // For new games, try to load saved options
     const savedOptions = localStorage.getItem('lastGameOptions');
     if (savedOptions) {
-      return JSON.parse(savedOptions);
+      const parsed = JSON.parse(savedOptions);
+      // Ensure addRakeToPayouts is set to true for new games even if saved options exist
+      return {
+        ...parsed,
+        addRakeToPayouts: true
+      };
     }
 
     // Default options for first-time use
@@ -210,7 +218,8 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
       showPayouts: false,
       useGroupHandicaps: false,
       strokeOffLowHandicap: false,
-      percentHandicapHaircut: 100
+      percentHandicapHaircut: 100,
+      addRakeToPayouts: true // Default to true for new games
     };
   });
 
@@ -262,7 +271,7 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
         showLeaderBoard: gameOptions.showLeaderboard ? 1 : 0,
         venmoName: null,
         percentHandicap: gameOptions.percentHandicapHaircut,
-        addRakeToPayouts: 1,
+        addRakeToPayouts: gameOptions.addRakeToPayouts ? 1 : 0,
         skinType: gameSettings.skinsType,
         payouts: gameSettings.payoutValues,
         appVersion: APP_VERSION,
@@ -296,7 +305,7 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
           showLeaderBoard: gameOptions.showLeaderboard ? 1 : 0,
           venmoName: null,
           percentHandicap: gameOptions.percentHandicapHaircut,
-          addRakeToPayouts: 1,
+          addRakeToPayouts: gameOptions.addRakeToPayouts ? 1 : 0,
           skinType: gameSettings.skinsType,
           payouts: gameSettings.payoutValues,
           appVersion: APP_VERSION,
