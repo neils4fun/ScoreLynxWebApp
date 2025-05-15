@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, Calendar, AlertCircle, User, BarChart } from 'lucide-react';
+import { ArrowLeft, Calendar, AlertCircle, User, BarChart, Loader2 } from 'lucide-react';
 import { useGroup } from '../context/GroupContext';
 import { useGame } from '../context/GameContext';
 import { 
@@ -262,11 +262,18 @@ export function ReportsScreen({ onBack }: { onBack: () => void }) {
                   <h3 className="text-lg font-medium">{report.title}</h3>
                   <p className="text-gray-600 text-sm mt-1">{report.description}</p>
                   <button 
-                    className="mt-3 text-blue-600 text-sm font-medium"
+                    className="mt-3 text-blue-600 text-sm font-medium flex items-center"
                     onClick={() => handleGenerateReport(report.id)}
                     disabled={isLoading}
                   >
-                    {loadingReportId === report.id ? 'Generating Report...' : 'Generate Report'}
+                    {loadingReportId === report.id ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Generating Report...
+                      </>
+                    ) : (
+                      'Generate Report'
+                    )}
                   </button>
                 </div>
               </div>
@@ -277,6 +284,19 @@ export function ReportsScreen({ onBack }: { onBack: () => void }) {
         {error && (
           <div className="mt-4 p-3 bg-red-50 text-red-700 rounded-lg">
             {error}
+          </div>
+        )}
+
+        {/* Loading Overlay */}
+        {isLoading && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+            <div className="bg-white p-6 rounded-lg w-full max-w-md text-center">
+              <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4 text-blue-600" />
+              <h2 className="text-lg font-bold mb-2">Generating Report</h2>
+              <p className="text-gray-600">
+                Please wait while we generate your report...
+              </p>
+            </div>
           </div>
         )}
 
