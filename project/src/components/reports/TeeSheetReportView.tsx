@@ -1,4 +1,4 @@
-import { ArrowLeft, Download } from 'lucide-react';
+import { ArrowLeft, Download, Mail } from 'lucide-react';
 import type { TeeSheetReportResponse, TeeSheetScorecard, TeeSheetPlayer } from '../../api/reportsApi';
 
 interface TeeSheetReportViewProps {
@@ -59,6 +59,39 @@ export function TeeSheetReportView({ report, onBack }: TeeSheetReportViewProps) 
     document.body.removeChild(link);
   };
 
+  const handleEmailReport = () => {
+    // Extract all non-null email addresses
+    const emailAddresses = report.scorecards
+      .flatMap(scorecard => scorecard.players)
+      .map(player => player.email)
+      .filter((email): email is string => email !== null && email !== '');
+
+    // Generate email body
+    let emailBody = `Course: ${report.courseName}\n`;
+    emailBody += `Tee: ${report.teeName}\n`;
+    emailBody += `Game Type: ${report.gameType}\n`;
+    emailBody += `Skin Type: ${report.skinType}\n\n`;
+
+    report.scorecards.forEach(scorecard => {
+      emailBody += `Scorecard: ${scorecard.name}\n`;
+      emailBody += 'Players:\n';
+      scorecard.players.forEach(player => {
+        emailBody += `- ${player.firstName} ${player.lastName} (${player.handicap}) - ${player.tee.name}`;
+        if (player.email) {
+          emailBody += ` - ${player.email}`;
+        }
+        emailBody += '\n';
+      });
+      emailBody += '\n';
+    });
+
+    // Create mailto link
+    const mailtoLink = `mailto:${emailAddresses.join(',')}?subject=Tee Sheet Report - ${report.courseName}&body=${encodeURIComponent(emailBody)}`;
+    
+    // Open email client
+    window.location.href = mailtoLink;
+  };
+
   return (
     <div className="max-w-md mx-auto h-screen flex flex-col">
       {/* Header */}
@@ -73,13 +106,22 @@ export function TeeSheetReportView({ report, onBack }: TeeSheetReportViewProps) 
             </button>
             <h1 className="text-xl font-bold ml-4">Tee Sheet Report</h1>
           </div>
-          <button
-            onClick={handleExportCSV}
-            className="flex items-center px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-          >
-            <Download className="w-4 h-4 mr-1" />
-            Export
-          </button>
+          <div className="flex space-x-2">
+            <button
+              onClick={handleEmailReport}
+              className="flex items-center px-3 py-1 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+            >
+              <Mail className="w-4 h-4 mr-1" />
+              Email
+            </button>
+            <button
+              onClick={handleExportCSV}
+              className="flex items-center px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+            >
+              <Download className="w-4 h-4 mr-1" />
+              Export
+            </button>
+          </div>
         </div>
       </div>
 
