@@ -14,6 +14,7 @@ export interface TeeSheetPlayer {
   lastName: string;
   handicap: string;
   venmoName: string | null;
+  email: string | null;
   tee: {
     teeID: string;
     name: string;

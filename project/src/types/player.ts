@@ -17,6 +17,7 @@ export interface Player {
   handicap: string | null;
   venmoName: string | null;
   didPay: string;
+  email?: string | null;
   tee?: Tee;
   scores: Score[];
 } 

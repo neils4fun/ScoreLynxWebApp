@@ -20,9 +20,9 @@ export function TeeSheetReportView({ report, onBack }: TeeSheetReportViewProps) 
     // Find the maximum number of players in any scorecard
     const maxPlayers = Math.max(...report.scorecards.map(sc => sc.players.length));
     
-    // Add player headers (Player 1, Handicap 1, Tee 1, etc.)
+    // Add player headers (Player 1, Handicap 1, Tee 1, Email 1, etc.)
     for (let i = 0; i < maxPlayers; i++) {
-      csvContent += `Player ${i+1},Handicap ${i+1},Tee ${i+1}${i < maxPlayers - 1 ? ',' : ''}`;
+      csvContent += `Player ${i+1},Handicap ${i+1},Tee ${i+1},Email ${i+1}${i < maxPlayers - 1 ? ',' : ''}`;
     }
     csvContent += '\n';
     
@@ -34,9 +34,9 @@ export function TeeSheetReportView({ report, onBack }: TeeSheetReportViewProps) 
       for (let i = 0; i < maxPlayers; i++) {
         if (i < scorecard.players.length) {
           const player = scorecard.players[i];
-          csvContent += `${player.firstName} ${player.lastName},${player.handicap},${player.tee.name}`;
+          csvContent += `${player.firstName} ${player.lastName},${player.handicap},${player.tee.name},${player.email || ''}`;
         } else {
-          csvContent += ',,';
+          csvContent += ',,,';
         }
         
         if (i < maxPlayers - 1) {
@@ -107,6 +107,7 @@ export function TeeSheetReportView({ report, onBack }: TeeSheetReportViewProps) 
                       <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Player</th>
                       <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Handicap</th>
                       <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Tee</th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
@@ -120,6 +121,9 @@ export function TeeSheetReportView({ report, onBack }: TeeSheetReportViewProps) 
                         </td>
                         <td className="px-4 py-2 text-sm text-gray-900">
                           {player.tee.name}
+                        </td>
+                        <td className="px-4 py-2 text-sm text-gray-900">
+                          {player.email || '-'}
                         </td>
                       </tr>
                     ))}

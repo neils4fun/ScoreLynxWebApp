@@ -91,8 +91,7 @@ export function AddGroupPlayersScreen({
             lastName: player.lastName,
             handicap: player.handicap ? parseFloat(player.handicap) : 0,
             teeID: player.tee?.teeID || '',
-            venmoName: null,
-            didPay: 0
+            email: player.email || null
           });
         }
       } else {
@@ -106,7 +105,8 @@ export function AddGroupPlayersScreen({
             gameID: gameId,
             groupID: groupId,
             didPay: 0,
-            venmoName: null
+            venmoName: null,
+            email: player.email || null
           });
         }
       }

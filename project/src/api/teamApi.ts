@@ -102,9 +102,8 @@ interface AddTeamPlayerRequest {
   firstName: string;
   lastName: string;
   handicap: number | null;
-  teeID?: string;
-  didPay?: number;
-  venmoName?: string | null;
+  teeID: string;
+  email: string | null;
 }
 
 interface AddTeamPlayerResponse {
@@ -131,6 +130,7 @@ export async function addTeamPlayerByName(
         lastName: player.lastName,
         handicap: player.handicap || 0,
         teeID: player.teeID || '',
+        email: player.email || null,
         didPay: 0,
         venmoName: null,
         source: APP_SOURCE,

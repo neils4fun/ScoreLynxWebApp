@@ -101,6 +101,7 @@ interface UpdatePlayerRequest {
   teeID: string;
   didPay: number;
   venmoName: string | null;
+  email: string | null;
   source?: string;
   appVersion?: string;
   deviceID?: string;
@@ -209,6 +210,7 @@ interface AddGamePlayerByNameRequest {
   teeID: string;
   didPay: number;
   venmoName: string | null;
+  email: string | null;
   source?: string;
   appVersion?: string;
   deviceID?: string;

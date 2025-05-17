@@ -30,6 +30,7 @@ export function EditPlayerScreen({
   const [firstName, setFirstName] = useState(player?.firstName || '');
   const [lastName, setLastName] = useState(player?.lastName || '');
   const [handicap, setHandicap] = useState(player?.handicap || '');
+  const [email, setEmail] = useState(player?.email || '');
   const [selectedTee, setSelectedTee] = useState<Tee | null>(player?.tee || defaultTee || null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -49,7 +50,8 @@ export function EditPlayerScreen({
             firstName,
             lastName,
             handicap: handicap ? parseFloat(handicap) : null,
-            teeID: selectedTee?.teeID || ''
+            teeID: selectedTee?.teeID || '',
+            email: email || null
           });
           
           // Create a player object from the response
@@ -58,6 +60,7 @@ export function EditPlayerScreen({
             firstName,
             lastName,
             handicap: handicap || null,
+            email: email || null,
             tee: selectedTee || undefined,
             venmoName: null,
             didPay: '0',
@@ -74,6 +77,7 @@ export function EditPlayerScreen({
             teeID: selectedTee?.teeID || '',
             didPay: 0,
             venmoName: null,
+            email: email || null
           });
 
           // Create a player object from the response
@@ -82,6 +86,7 @@ export function EditPlayerScreen({
             firstName,
             lastName,
             handicap: handicap || null,
+            email: email || null,
             tee: selectedTee || undefined,
             venmoName: null,
             didPay: '0',
@@ -101,6 +106,7 @@ export function EditPlayerScreen({
           teeID: selectedTee?.teeID || '',
           didPay: parseInt(player.didPay, 10) || 0,
           venmoName: player.venmoName,
+          email: email || null
         });
 
         if (response.status.code === 0) {
@@ -109,6 +115,7 @@ export function EditPlayerScreen({
             firstName,
             lastName,
             handicap,
+            email: email || null,
             tee: selectedTee || undefined,
           };
           onSave(updatedPlayer);
@@ -144,6 +151,10 @@ export function EditPlayerScreen({
     if (/^-?\d*$/.test(value)) {
       setHandicap(value);
     }
+  };
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEmail(e.target.value);
   };
 
   const handleTeeSelect = (tee: Tee) => {
@@ -202,6 +213,19 @@ export function EditPlayerScreen({
               onChange={handleLastNameChange}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
               required
+            />
+          </div>
+
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              Email
+            </label>
+            <input
+              type="email"
+              id="email"
+              value={email}
+              onChange={handleEmailChange}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
             />
           </div>
 
