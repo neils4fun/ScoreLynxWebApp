@@ -76,11 +76,7 @@ export function TeeSheetReportView({ report, onBack }: TeeSheetReportViewProps) 
       emailBody += `Scorecard: ${scorecard.name}\n`;
       emailBody += 'Players:\n';
       scorecard.players.forEach(player => {
-        emailBody += `- ${player.firstName} ${player.lastName} (${player.handicap}) - ${player.tee.name}`;
-        if (player.email) {
-          emailBody += ` - ${player.email}`;
-        }
-        emailBody += '\n';
+        emailBody += `- ${player.firstName} ${player.lastName} (${player.handicap}) - ${player.tee.name}\n`;
       });
       emailBody += '\n';
     });
