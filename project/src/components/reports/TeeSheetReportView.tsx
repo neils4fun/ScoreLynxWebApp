@@ -81,8 +81,8 @@ export function TeeSheetReportView({ report, onBack }: TeeSheetReportViewProps) 
       emailBody += '\n';
     });
 
-    // Create mailto link
-    const mailtoLink = `mailto:${emailAddresses.join(',')}?subject=Tee Sheet Report - ${report.courseName}&body=${encodeURIComponent(emailBody)}`;
+    // Create mailto link with semicolon-separated email addresses
+    const mailtoLink = `mailto:${emailAddresses.join(';')}?subject=Tee Sheet Report - ${report.courseName}&body=${encodeURIComponent(emailBody)}`;
     
     // Open email client
     window.location.href = mailtoLink;
