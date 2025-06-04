@@ -197,6 +197,7 @@ export function ReportsScreen({ onBack }: { onBack: () => void }) {
     return (
       <TeeSheetReportView
         report={teeSheetReport}
+        courseID={selectedGame?.courseID}
         onBack={() => setTeeSheetReport(null)}
       />
     );

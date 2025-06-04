@@ -1,12 +1,41 @@
 import { ArrowLeft, Download, Mail } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import type { TeeSheetReportResponse, TeeSheetScorecard, TeeSheetPlayer } from '../../api/reportsApi';
+import { fetchWeatherForecast, type WeatherResponse } from '../../api/weatherApi';
+import { fetchCourse } from '../../api/gameApi';
 
 interface TeeSheetReportViewProps {
   report: TeeSheetReportResponse;
+  courseID?: string;
   onBack: () => void;
 }
 
-export function TeeSheetReportView({ report, onBack }: TeeSheetReportViewProps) {
+export function TeeSheetReportView({ report, courseID, onBack }: TeeSheetReportViewProps) {
+  const [weather, setWeather] = useState<WeatherResponse | null>(null);
+  const [weatherError, setWeatherError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadWeather = async () => {
+      try {
+        setWeatherError(null);
+        const cid = courseID || report.courseID;
+        const course = await fetchCourse(cid);
+        const gameDate = new Date(report.gameDate);
+        const weatherData = await fetchWeatherForecast(course.city, course.state, gameDate);
+        setWeather(weatherData);
+      } catch (err) {
+        console.error('Failed to load weather:', err);
+        setWeatherError(err instanceof Error ? err.message : 'Failed to load weather forecast');
+      }
+    };
+    const cid = courseID || report.courseID;
+    if (cid) {
+      loadWeather();
+    } else {
+      setWeatherError('No course ID available for weather lookup');
+    }
+  }, [courseID, report.courseID, report.gameDate]);
+
   const handleExportCSV = () => {
     // Create CSV content
     let csvContent = `Course,${report.courseName}\n`;
@@ -72,6 +101,17 @@ export function TeeSheetReportView({ report, onBack }: TeeSheetReportViewProps) 
     emailBody += `Game Type: ${report.gameType}\n`;
     emailBody += `Skin Type: ${report.skinType}\n\n`;
 
+    // Add weather forecast if available
+    if (weather) {
+      emailBody += 'Weather Forecast:\n';
+      emailBody += `Temperature: ${Math.round(weather.main.temp)}°F\n`;
+      emailBody += `Feels like: ${Math.round(weather.main.feels_like)}°F\n`;
+      emailBody += `Conditions: ${weather.weather[0].description}\n`;
+      emailBody += `Wind: ${Math.round(weather.wind.speed)} mph\n\n`;
+    } else if (weatherError) {
+      emailBody += `Weather Forecast: ${weatherError}\n\n`;
+    }
+
     report.scorecards.forEach(scorecard => {
       emailBody += `Scorecard: ${scorecard.name}\n`;
       emailBody += 'Players:\n';
@@ -80,6 +120,8 @@ export function TeeSheetReportView({ report, onBack }: TeeSheetReportViewProps) 
       });
       emailBody += '\n';
     });
+
+    emailBody += '\nFollow this link for ScoreLynxPro on the web: http://www.scorelynxpro.com/slp_web/\n';
 
     // Create mailto link with semicolon-separated email addresses
     const mailtoLink = `mailto:${emailAddresses.join(';')}?subject=Tee Sheet Report - ${report.courseName}&body=${encodeURIComponent(emailBody)}`;
@@ -131,6 +173,20 @@ export function TeeSheetReportView({ report, onBack }: TeeSheetReportViewProps) 
               <p>Tee: {report.teeName}</p>
               <p>Game Type: {report.gameType}</p>
               <p>Skin Type: {report.skinType}</p>
+              {weather && (
+                <div className="mt-2 pt-2 border-t border-gray-200">
+                  <p className="font-medium">Weather Forecast:</p>
+                  <p>Temperature: {Math.round(weather.main.temp)}°F</p>
+                  <p>Feels like: {Math.round(weather.main.feels_like)}°F</p>
+                  <p>Conditions: {weather.weather[0].description}</p>
+                  <p>Wind: {Math.round(weather.wind.speed)} mph</p>
+                </div>
+              )}
+              {weatherError && (
+                <div className="mt-2 pt-2 border-t border-gray-200 text-red-600">
+                  <p>Weather Forecast: {weatherError}</p>
+                </div>
+              )}
             </div>
           </div>
 

@@ -1,4 +1,4 @@
-import { API_BASE } from './config';
+import { API_BASE, APP_VERSION, APP_SOURCE, DEVICE_ID } from './config';
 
 // Define types for the tee sheet report response
 export interface TeeSheetScore {
@@ -34,10 +34,12 @@ export interface TeeSheetReportResponse {
     code: number;
     message: string;
   };
+  courseID: string;
   courseName: string;
   teeName: string;
   gameType: string;
   skinType: string;
+  gameDate: string;
   scorecards: TeeSheetScorecard[];
 }
 
@@ -103,7 +105,10 @@ export interface GroupPlayerDetailHistoryResponse {
  */
 export async function getTeeSheetReport(gameId: string): Promise<TeeSheetReportResponse> {
   const requestBody = {
-    gameID: gameId
+    gameID: gameId,
+    deviceID: DEVICE_ID,
+    appVersion: APP_VERSION,
+    source: APP_SOURCE
   };
 
   const response = await fetch(`${API_BASE}/getTeeSheetReport`, {
@@ -118,7 +123,13 @@ export async function getTeeSheetReport(gameId: string): Promise<TeeSheetReportR
     throw new Error('Failed to fetch tee sheet report');
   }
 
-  return response.json();
+  const data = await response.json() as TeeSheetReportResponse;
+  
+  if (data.status.code !== 0) {
+    throw new Error(data.status.message || 'Failed to fetch tee sheet report');
+  }
+
+  return data;
 }
 
 /**

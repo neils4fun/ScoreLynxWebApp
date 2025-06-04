@@ -437,23 +437,36 @@ export async function fetchGamePayoutsList(gameId: string): Promise<GamePayoutsL
 }
 
 export async function fetchCourse(courseId: string): Promise<Course> {
-  const response = await fetch(`${API_BASE}/getCourse`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
+  try {
+    const requestBody = {
       courseID: courseId,
       deviceID: DEVICE_ID,
       appVersion: APP_VERSION,
       source: APP_SOURCE,
-    }),
-  });
+    };
 
-  if (!response.ok) {
-    throw new Error('Failed to fetch course details');
+    const response = await fetch(`${API_BASE}/getCourse`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody),
+    });
+
+    const responseText = await response.text();
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch course details: ${response.status} ${responseText}`);
+    }
+
+    const data = JSON.parse(responseText) as GetCourseResponse;
+    
+    if (data.status.code !== 0) {
+      throw new Error(data.status.message || 'Failed to fetch course details');
+    }
+
+    return data.course;
+  } catch (error) {
+    throw error;
   }
-
-  const data = await response.json() as GetCourseResponse;
-  return data.course;
 }
