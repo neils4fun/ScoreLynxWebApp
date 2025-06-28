@@ -32,7 +32,8 @@ export function GameFormScreen({ onBack, game, onUpdateGame, onAddGame }: GameFo
     useGroupHandicaps: false,
     strokeOffLowHandicap: false,
     percentHandicapHaircut: 100,
-    addRakeToPayouts: true
+    addRakeToPayouts: true,
+    breakTiesOnPayouts: false
   });
 
   // Populate form when editing existing game
@@ -51,8 +52,16 @@ export function GameFormScreen({ onBack, game, onUpdateGame, onAddGame }: GameFo
 
       // You might need to adjust these mappings based on your actual Game type
       setGameOptions({
-        ...gameOptions,
-        // Map game properties to options as needed
+        showNotifications: game.showNotifications === '1',
+        showPaceOfPlay: game.showPaceOfPlay === '1',
+        showLeaderboard: game.showLeaderBoard === '1',
+        showSkins: game.showSkins === '1',
+        showPayouts: game.showPayouts === '1',
+        useGroupHandicaps: game.useGroupHandicaps === '1',
+        strokeOffLowHandicap: game.strokeOffLow === '1',
+        percentHandicapHaircut: Math.min(parseInt(game.percentHandicap) || 100, 100),
+        addRakeToPayouts: game.addRakeToPayouts === '1',
+        breakTiesOnPayouts: game.breakTiesOnPayouts === '1' || false
       });
     }
   }, [game]);

@@ -18,6 +18,7 @@ interface AddGameRequest {
   venmoName: string | null;
   percentHandicap: number;
   addRakeToPayouts: number;
+  breakTiesOnPayouts: number;
   skinType: string;
   payouts: any[];
   appVersion: string;
@@ -61,6 +62,7 @@ interface UpdateGameRequest {
   venmoName: string | null;
   percentHandicap: number;
   addRakeToPayouts: number;
+  breakTiesOnPayouts: number;
   skinType: string;
   payouts: any[];
   appVersion: string;

@@ -51,6 +51,7 @@ interface GameOptions {
   strokeOffLowHandicap: boolean;
   percentHandicapHaircut: number;
   addRakeToPayouts: boolean;
+  breakTiesOnPayouts: boolean;
 }
 
 export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps) {
@@ -96,7 +97,8 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
         useGroupHandicaps: game.useGroupHandicaps === '1',
         strokeOffLowHandicap: game.strokeOffLow === '1',
         percentHandicapHaircut: Math.min(parseInt(game.percentHandicap) || 100, 100),
-        addRakeToPayouts: game.addRakeToPayouts === '1'
+        addRakeToPayouts: game.addRakeToPayouts === '1',
+        breakTiesOnPayouts: game.breakTiesOnPayouts === '1' || false
       });
 
       // Fetch payouts list when editing a game
@@ -194,7 +196,8 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
         useGroupHandicaps: game.useGroupHandicaps === '1',
         strokeOffLowHandicap: game.strokeOffLow === '1',
         percentHandicapHaircut: Math.min(parseInt(game.percentHandicap) || 100, 100),
-        addRakeToPayouts: game.addRakeToPayouts === '1'
+        addRakeToPayouts: game.addRakeToPayouts === '1',
+        breakTiesOnPayouts: game.breakTiesOnPayouts === '1' || false
       };
     }
 
@@ -219,7 +222,8 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
       useGroupHandicaps: false,
       strokeOffLowHandicap: false,
       percentHandicapHaircut: 100,
-      addRakeToPayouts: true // Default to true for new games
+      addRakeToPayouts: true, // Default to true for new games
+      breakTiesOnPayouts: false
     };
   });
 
@@ -291,7 +295,8 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
         gameAnte: parseInt(gameSettings.gameAnte) || 0,
         teamPlayerType: gameSettings.gameType !== game?.gameType 
           ? selectedGameMeta?.teamPlayerType || 'Player'
-          : game?.teamPlayerType
+          : game?.teamPlayerType,
+        breakTiesOnPayouts: gameOptions.breakTiesOnPayouts ? 1 : 0
       };
 
       if (isEditMode && game) {
@@ -326,7 +331,8 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
           teamPlayerType: gameSettings.gameType !== game?.gameType 
             ? selectedGameMeta?.teamPlayerType || 'Player'
             : game?.teamPlayerType,
-          ownerDeviceID: 'SLPWeb'
+          ownerDeviceID: 'SLPWeb',
+          breakTiesOnPayouts: gameOptions.breakTiesOnPayouts ? 1 : 0
         });
       } else {
         await addGame({

@@ -28,6 +28,7 @@ export interface Game {
   strokeOffLow: string;
   percentHandicap: string;
   addRakeToPayouts: string;
+  breakTiesOnPayouts?: string;
   gameAnte: string;
   skinsAnte: string;
   mirrorGameName: string;
