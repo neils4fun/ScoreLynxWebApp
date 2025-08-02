@@ -419,3 +419,42 @@ export async function getGamePlayerExScorecardList(gameId: string): Promise<Game
 
   return response.json();
 }
+
+interface AutoCreateScorecardsRequest {
+  gameID: string;
+  strategy: number;
+}
+
+interface AutoCreateScorecardsResponse {
+  status: {
+    code: number;
+    message: string;
+  };
+}
+
+export async function autoCreateScorecards(gameId: string, strategy: number): Promise<AutoCreateScorecardsResponse> {
+  const payload: AutoCreateScorecardsRequest = {
+    gameID: gameId,
+    strategy
+  };
+
+  const response = await fetch(`${API_BASE}/autoCreateScorecards`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload)
+  });
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+
+  const data = await response.json() as AutoCreateScorecardsResponse;
+  
+  if (data.status.code !== 0) {
+    throw new Error(data.status.message);
+  }
+
+  return data;
+}

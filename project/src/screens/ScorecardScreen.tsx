@@ -3,7 +3,7 @@ import { useGame } from '../context/GameContext';
 import { useScorecard } from '../context/ScorecardContext';
 import { ScoringScreen } from './ScoringScreen';
 import { ScorecardList } from '../components/scorecard/ScorecardList';
-import { fetchScorecardList, fetchScorecardPlayerList, addScorecard, updateScorecard } from '../api/scorecardApi';
+import { fetchScorecardList, fetchScorecardPlayerList, addScorecard, updateScorecard, autoCreateScorecards } from '../api/scorecardApi';
 import type { ScorecardListResponse } from '../types/scorecard';
 import { ArrowLeft, RotateCw, Trash2 } from 'lucide-react';
 import { ICONS } from '../api/config';
@@ -28,6 +28,8 @@ export function ScorecardScreen() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isAddingPlayers, setIsAddingPlayers] = useState(false);
   const [isDeletingPlayer, setIsDeletingPlayer] = useState(false);
+  const [showAutoModal, setShowAutoModal] = useState(false);
+  const [selectedAutoOption, setSelectedAutoOption] = useState<'random' | 'abcd' | 'handicap'>('random');
 
   // Save scoring state to localStorage
   useEffect(() => {
@@ -187,6 +189,33 @@ export function ScorecardScreen() {
       setError(err instanceof Error ? err.message : 'Failed to remove player');
     } finally {
       setIsDeletingPlayer(false);
+    }
+  };
+
+  const handleAutoCreateScorecards = async () => {
+    if (!selectedGame) return;
+
+    setError(null);
+
+    try {
+      // Convert the selected option to the corresponding strategy number
+      const strategyMap = {
+        'random': 0,
+        'abcd': 1,
+        'handicap': 2
+      };
+      
+      const strategy = strategyMap[selectedAutoOption];
+      
+      await autoCreateScorecards(selectedGame.gameID, strategy);
+      
+      // Refresh the scorecard list after successful auto creation
+      await loadScorecards();
+      
+      // Close the modal
+      setShowAutoModal(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to auto create scorecards');
     }
   };
 
@@ -419,10 +448,16 @@ export function ScorecardScreen() {
           <h2 className="text-2xl font-bold text-gray-900">Scorecards</h2>
           <div className="flex items-center space-x-2">
             <button
+              onClick={() => setShowAutoModal(true)}
+              className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+            >
+              Auto
+            </button>
+            <button
               onClick={() => setIsCreatingScorecard(true)}
               className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
             >
-              New Scorecard
+              New
             </button>
             <button
               onClick={loadScorecards}
@@ -446,6 +481,67 @@ export function ScorecardScreen() {
           onEdit={handleStartEdit}
         />
       </div>
+
+      {/* Auto Modal */}
+      {showAutoModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+          <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4">
+            <h3 className="text-lg font-semibold mb-4">Auto generate scorecards?</h3>
+            <p className="text-gray-600 mb-6">Doing so will remove any existing scorecards.</p>
+            
+            <div className="space-y-3 mb-6">
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="autoOption"
+                  value="random"
+                  checked={selectedAutoOption === 'random'}
+                  onChange={(e) => setSelectedAutoOption(e.target.value as 'random' | 'abcd' | 'handicap')}
+                  className="mr-3"
+                />
+                <span>Random groups</span>
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="autoOption"
+                  value="abcd"
+                  checked={selectedAutoOption === 'abcd'}
+                  onChange={(e) => setSelectedAutoOption(e.target.value as 'random' | 'abcd' | 'handicap')}
+                  className="mr-3"
+                />
+                <span>ABCD groups</span>
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="autoOption"
+                  value="handicap"
+                  checked={selectedAutoOption === 'handicap'}
+                  onChange={(e) => setSelectedAutoOption(e.target.value as 'random' | 'abcd' | 'handicap')}
+                  className="mr-3"
+                />
+                <span>Like Handicap groups</span>
+              </label>
+            </div>
+
+            <div className="flex space-x-3">
+              <button
+                onClick={() => setShowAutoModal(false)}
+                className="flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAutoCreateScorecards}
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
