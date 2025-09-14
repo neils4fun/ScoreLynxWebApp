@@ -2,6 +2,7 @@ export interface GameMeta {
   type: string;
   description: string;
   teamPlayerType: 'Player' | 'Team' | 'Matchplay';
+  numberMatchplayPlayers: number;
 }
 
 export interface GameMetaResponse {

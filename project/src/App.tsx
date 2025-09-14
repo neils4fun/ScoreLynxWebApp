@@ -7,6 +7,10 @@ import SettingsScreen from './screens/SettingsScreen';
 import CourseMaintenanceScreen from './screens/CourseMaintenanceScreen';
 import MessagesScreen from './screens/MessagesScreen';
 import { ReportsScreen } from './screens/ReportsScreen';
+import InformationScreen from './screens/InformationScreen';
+import GameInformationScreen from './screens/GameInformationScreen';
+import SkinsInformationScreen from './screens/SkinsInformationScreen';
+import JunkInformationScreen from './screens/JunkInformationScreen';
 import { GameProvider } from './context/GameContext';
 import { GroupProvider } from './context/GroupContext';
 import { ScorecardProvider } from './context/ScorecardContext';
@@ -18,6 +22,10 @@ export default function App() {
   const [showCourseMaintenance, setShowCourseMaintenance] = useState(false);
   const [showMessages, setShowMessages] = useState(false);
   const [showReports, setShowReports] = useState(false);
+  const [showInformation, setShowInformation] = useState(false);
+  const [showGameInformation, setShowGameInformation] = useState(false);
+  const [showSkinsInformation, setShowSkinsInformation] = useState(false);
+  const [showJunkInformation, setShowJunkInformation] = useState(false);
 
   useEffect(() => {
     localStorage.setItem('activeTab', activeTab);
@@ -48,6 +56,41 @@ export default function App() {
       );
     }
 
+    if (showJunkInformation) {
+      return (
+        <JunkInformationScreen
+          onBack={() => setShowJunkInformation(false)}
+        />
+      );
+    }
+
+    if (showSkinsInformation) {
+      return (
+        <SkinsInformationScreen
+          onBack={() => setShowSkinsInformation(false)}
+        />
+      );
+    }
+
+    if (showGameInformation) {
+      return (
+        <GameInformationScreen
+          onBack={() => setShowGameInformation(false)}
+        />
+      );
+    }
+
+    if (showInformation) {
+      return (
+        <InformationScreen
+          onBack={() => setShowInformation(false)}
+          onNavigateToGameInformation={() => setShowGameInformation(true)}
+          onNavigateToSkinsInformation={() => setShowSkinsInformation(true)}
+          onNavigateToJunkInformation={() => setShowJunkInformation(true)}
+        />
+      );
+    }
+
     switch (activeTab) {
       case 'games':
         return <GamesScreen />;
@@ -61,6 +104,7 @@ export default function App() {
             onNavigateToCourseMaintenance={() => setShowCourseMaintenance(true)}
             onNavigateToMessages={() => setShowMessages(true)}
             onNavigateToReports={() => setShowReports(true)}
+            onNavigateToInformation={() => setShowInformation(true)}
           />
         );
       default:
@@ -76,7 +120,7 @@ export default function App() {
             <div className="max-w-2xl mx-auto">
               {renderScreen()}
             </div>
-            {!showCourseMaintenance && !showMessages && !showReports && (
+            {!showCourseMaintenance && !showMessages && !showReports && !showInformation && !showGameInformation && !showSkinsInformation && !showJunkInformation && (
               <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
             )}
           </div>

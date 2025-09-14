@@ -8,6 +8,8 @@ export interface Tee {
 export interface Junk {
   junkID: string;
   junkName: string;
+  description: string;
+  value: string;
 }
 
 export interface Score {

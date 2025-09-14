@@ -350,6 +350,8 @@ export async function updateScorecard(scorecardId: string, gameId: string, name:
 export interface Junk {
   junkID: string;
   junkName: string;
+  description: string;
+  value: string;
 }
 
 interface JunkListResponse {
@@ -360,7 +362,7 @@ interface JunkListResponse {
   junks: Junk[];
 }
 
-export async function fetchJunkList(): Promise<JunkListResponse> {
+export async function fetchJunkList(gameID: string): Promise<JunkListResponse> {
   try {
     const response = await fetch(`${API_BASE}/getJunkList`, {
       method: 'POST',
@@ -370,7 +372,8 @@ export async function fetchJunkList(): Promise<JunkListResponse> {
       body: JSON.stringify({
         source: APP_SOURCE,
         deviceID: DEVICE_ID,
-        appVersion: APP_VERSION
+        appVersion: APP_VERSION,
+        gameID: gameID
       }),
     });
 
@@ -387,6 +390,38 @@ export async function fetchJunkList(): Promise<JunkListResponse> {
     return data;
   } catch (error) {
     console.error('Error fetching junk list:', error);
+    throw error;
+  }
+}
+
+export async function fetchJunkInformation(): Promise<JunkListResponse> {
+  try {
+    const response = await fetch(`${API_BASE}/getJunkList`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        source: APP_SOURCE,
+        deviceID: DEVICE_ID,
+        appVersion: APP_VERSION,
+        gameID: ""
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json() as JunkListResponse;
+    
+    if (data.status.code !== 0) {
+      throw new Error(data.status.message);
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error fetching junk information:', error);
     throw error;
   }
 }

@@ -40,7 +40,7 @@ export function ScoringScreen({ onBack, gameId, scorecardId }: ScoringScreenProp
       const [playerData, courseData, junkData] = await Promise.all([
         fetchScorecardPlayerList(gameId, scorecardId),
         fetchCourse(selectedGame.courseID),
-        fetchJunkList(),
+        fetchJunkList(gameId),
       ]);
       
       // Transform the players data to ensure scores and junks are properly handled
