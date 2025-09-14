@@ -4,7 +4,8 @@ import {
   TeamLeaderboardResponse, 
   PlayerLeaderboardResponse, 
   SkinsResponse, 
-  PayoutsResponse 
+  PayoutsResponse,
+  JunkLeaderboardResponse
 } from '../types/leaderboard';
 
 interface SkinsDetailRequest {
@@ -220,4 +221,36 @@ export async function fetchSkinsDetail(params: SkinsDetailRequest): Promise<Skin
   }
 
   return data;
+}
+
+export async function fetchJunkLeaderboard(gameId: string): Promise<JunkLeaderboardResponse> {
+  try {
+    const response = await fetch(`${API_BASE}/getJunkLeaderboard`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        source: APP_SOURCE,
+        gameID: gameId,
+        deviceID: DEVICE_ID,
+        appVersion: APP_VERSION
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json() as JunkLeaderboardResponse;
+    
+    if (data.status.code !== 0) {
+      throw new Error(data.status.message);
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error fetching junk leaderboard:', error);
+    throw error;
+  }
 }

@@ -102,3 +102,24 @@ export interface PayoutsResponse {
   headers: string[][];
   gameTypes: string[];
 }
+
+export interface JunkLeader {
+  playerID: string;
+  gameID: string;
+  playerName: string;
+  junkCount: string;
+  thruHole: string;
+  holesPlayed: string;
+  payout: string;
+}
+
+export interface JunkLeaderboardResponse {
+  status: {
+    code: number;
+    message: string;
+  };
+  gameID: string;
+  leaders: JunkLeader[][];
+  headers: string[][];
+  gameTypes: string[];
+}

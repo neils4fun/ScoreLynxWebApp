@@ -5,20 +5,23 @@ import { TeamLeaderboard } from '../components/leaderboard/TeamLeaderboard';
 import { PlayerLeaderboard } from '../components/leaderboard/PlayerLeaderboard';
 import { SkinsLeaderboard } from '../components/leaderboard/SkinsLeaderboard';
 import { PayoutsLeaderboard } from '../components/leaderboard/PayoutsLeaderboard';
+import { JunkLeaderboard } from '../components/leaderboard/JunkLeaderboard';
 import { SkinsDetailScreen } from './SkinsDetailScreen';
 import type { 
   MatchplayLeader,
   PlayerLeader,
   TeamLeader,
   Skin,
-  Payout
+  Payout,
+  JunkLeader
 } from '../types/leaderboard';
 import { 
   fetchMatchplayLeaderboard,
   fetchTeamLeaderboard,
   fetchPlayerLeaderboard,
   fetchSkins,
-  fetchPayouts
+  fetchPayouts,
+  fetchJunkLeaderboard
 } from '../api/leaderboardApi';
 import { RotateCw } from 'lucide-react';
 
@@ -39,6 +42,7 @@ export default function LeaderboardScreen() {
   const [teamData, setTeamData] = useState<TeamLeader[][]>([]);
   const [skinsData, setSkinsData] = useState<Skin[][]>([]);
   const [payoutsData, setPayoutsData] = useState<Payout[][]>([]);
+  const [junkData, setJunkData] = useState<JunkLeader[][]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [playerHeaders, setPlayerHeaders] = useState<string[][]>([]);
@@ -48,6 +52,8 @@ export default function LeaderboardScreen() {
   const [teamGameTypes, setTeamGameTypes] = useState<string[]>([]);
   const [skinsGameTypes, setSkinsGameTypes] = useState<string[]>([]);
   const [payoutGameTypes, setPayoutGameTypes] = useState<string[]>([]);
+  const [junkHeaders, setJunkHeaders] = useState<string[][]>([]);
+  const [junkGameTypes, setJunkGameTypes] = useState<string[]>([]);
 
   // Save active tab to localStorage whenever it changes
   useEffect(() => {
@@ -64,27 +70,26 @@ export default function LeaderboardScreen() {
   const getLeaderboardTabs = () => {
     if (!selectedGame) return [];
     
+    const baseTabs = [];
+    
     if (selectedGame.teamPlayerType === 'Matchplay') {
-      return [
-        { id: 'team', label: 'Matchplay' },
-        { id: 'player', label: 'Player' },
-        { id: 'skins', label: 'Skins' },
-        { id: 'payouts', label: 'Payouts' },
-      ];
-    } else if (selectedGame.teamPlayerType === 'Player') {
-      return [
-        { id: 'player', label: 'Player' },
-        { id: 'skins', label: 'Skins' },
-        { id: 'payouts', label: 'Payouts' },
-      ];
-    } else {
-      return [
-        { id: 'team', label: 'Team' },
-        { id: 'player', label: 'Player' },
-        { id: 'skins', label: 'Skins' },
-        { id: 'payouts', label: 'Payouts' },
-      ];
+      baseTabs.push({ id: 'team', label: 'Matchplay' });
+    } else if (selectedGame.teamPlayerType !== 'Player') {
+      baseTabs.push({ id: 'team', label: 'Team' });
     }
+    
+    baseTabs.push(
+      { id: 'player', label: 'Player' },
+      { id: 'skins', label: 'Skins' },
+      { id: 'payouts', label: 'Payouts' }
+    );
+    
+    // Add Junks tab only if showJunks is true (non-zero)
+    if (selectedGame.showJunks === '1') {
+      baseTabs.push({ id: 'junks', label: 'Junks' });
+    }
+    
+    return baseTabs;
   };
 
   const loadLeaderboardData = async () => {
@@ -118,6 +123,11 @@ export default function LeaderboardScreen() {
         setPayoutsData(data.payouts);
         setPayoutHeaders(data.headers);
         setPayoutGameTypes(data.gameTypes);
+      } else if (activeTab === 'junks') {
+        const data = await fetchJunkLeaderboard(selectedGame.gameID);
+        setJunkData(data.leaders);
+        setJunkHeaders(data.headers);
+        setJunkGameTypes(data.gameTypes);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load leaderboard data');
@@ -194,6 +204,18 @@ export default function LeaderboardScreen() {
           payouts={payoutsData}
           headers={payoutHeaders}
           gameTypes={payoutGameTypes}
+          isLoading={isLoading}
+          error={error}
+        />
+      );
+    }
+
+    if (activeTab === 'junks') {
+      return (
+        <JunkLeaderboard 
+          leaders={junkData}
+          headers={junkHeaders}
+          gameTypes={junkGameTypes}
           isLoading={isLoading}
           error={error}
         />
