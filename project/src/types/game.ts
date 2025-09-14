@@ -24,13 +24,20 @@ export interface Game {
   showLeaderBoard: string;
   showSkins: string;
   showPayouts: string;
+  showJunks: string;
   useGroupHandicaps: string;
   strokeOffLow: string;
   percentHandicap: string;
+  multiCourseGame: string;
   addRakeToPayouts: string;
-  breakTiesOnPayouts?: string;
+  breakTiesOnPayouts: string;
   gameAnte: string;
   skinsAnte: string;
-  mirrorGameName: string;
+  dollarsPerJunk: string;
+  venmoName: string | null;
+  gameInstructions: string | null;
+  numberMatchplayPlayers: string;
+  teamCount: string;
+  mirrorGameName: string | null;
   mirrorGameID: string | null;
 }

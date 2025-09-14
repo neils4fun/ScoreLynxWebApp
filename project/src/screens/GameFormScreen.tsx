@@ -35,6 +35,7 @@ interface GameSettings {
   teeId: string;     // Hidden field for API
   gameAnte: string;
   skinsAnte: string;
+  dollarsPerJunk: string;
   payouts: string;   // Display string for UI
   payoutValues: number[];  // Internal array for API
   mirrorGame: string;
@@ -47,6 +48,7 @@ interface GameOptions {
   showLeaderboard: boolean;
   showSkins: boolean;
   showPayouts: boolean;
+  showJunks: boolean;
   useGroupHandicaps: boolean;
   strokeOffLowHandicap: boolean;
   percentHandicapHaircut: number;
@@ -82,6 +84,7 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
         teeId: game.teeID,
         gameAnte: game.gameAnte || '0.0',
         skinsAnte: game.skinsAnte || '0.0',
+        dollarsPerJunk: game.dollarsPerJunk || '0.0',
         payouts: 'Loading payouts...',
         payoutValues: [],
         mirrorGame: game.mirrorGameName || '',
@@ -94,6 +97,7 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
         showLeaderboard: game.showLeaderBoard === '1',
         showSkins: game.showSkins === '1',
         showPayouts: game.showPayouts === '1',
+        showJunks: game.showJunks === '1',
         useGroupHandicaps: game.useGroupHandicaps === '1',
         strokeOffLowHandicap: game.strokeOffLow === '1',
         percentHandicapHaircut: Math.min(parseInt(game.percentHandicap) || 100, 100),
@@ -148,6 +152,7 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
         teeId: game.teeID || '',
         gameAnte: game.gameAnte || '',
         skinsAnte: game.skinsAnte || '',
+        dollarsPerJunk: game.dollarsPerJunk || '',
         payouts: '',
         payoutValues: [],
         mirrorGame: game.mirrorGameName || '',
@@ -177,6 +182,7 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
       teeId: '',
       gameAnte: '',
       skinsAnte: '',
+      dollarsPerJunk: '',
       payouts: '',
       payoutValues: [],
       mirrorGame: '',
@@ -193,6 +199,7 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
         showLeaderboard: game.showLeaderBoard === '1',
         showSkins: game.showSkins === '1',
         showPayouts: game.showPayouts === '1',
+        showJunks: game.showJunks === '1',
         useGroupHandicaps: game.useGroupHandicaps === '1',
         strokeOffLowHandicap: game.strokeOffLow === '1',
         percentHandicapHaircut: Math.min(parseInt(game.percentHandicap) || 100, 100),
@@ -219,6 +226,7 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
       showLeaderboard: false,
       showSkins: false,
       showPayouts: false,
+      showJunks: false,
       useGroupHandicaps: false,
       strokeOffLowHandicap: false,
       percentHandicapHaircut: 100,
@@ -284,6 +292,7 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
         mirrorGameID: gameSettings.mirrorGameId,
         teeID: gameSettings.teeId,
         showPayouts: gameOptions.showPayouts ? 1 : 0,
+        showJunks: gameOptions.showJunks ? 1 : 0,
         gameType: gameSettings.gameType,
         tournamentName: gameKey,
         showSkins: gameOptions.showSkins ? 1 : 0,
@@ -292,6 +301,7 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
         teamCount: 0,
         source: APP_SOURCE,
         skinsAnte: parseInt(gameSettings.skinsAnte) || 0,
+        dollarsPerJunk: parseInt(gameSettings.dollarsPerJunk) || 0,
         gameAnte: parseInt(gameSettings.gameAnte) || 0,
         teamPlayerType: gameSettings.gameType !== game?.gameType 
           ? selectedGameMeta?.teamPlayerType || 'Player'
@@ -319,6 +329,7 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
           mirrorGameID: gameSettings.mirrorGameId,
           teeID: gameSettings.teeId,
           showPayouts: gameOptions.showPayouts ? 1 : 0,
+          showJunks: gameOptions.showJunks ? 1 : 0,
           gameType: gameSettings.gameType,
           tournamentName: gameKey,
           showSkins: gameOptions.showSkins ? 1 : 0,
@@ -327,6 +338,7 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
           teamCount: 0,
           source: APP_SOURCE,
           skinsAnte: parseInt(gameSettings.skinsAnte) || 0,
+          dollarsPerJunk: parseInt(gameSettings.dollarsPerJunk) || 0,
           gameAnte: parseInt(gameSettings.gameAnte) || 0,
           teamPlayerType: gameSettings.gameType !== game?.gameType 
             ? selectedGameMeta?.teamPlayerType || 'Player'
@@ -517,6 +529,22 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
                     onChange={(e) => setGameSettings(prev => ({
                       ...prev,
                       skinsAnte: e.target.value
+                    }))}
+                    className="w-24 px-2 py-1 text-right border rounded"
+                    placeholder="0.00"
+                  />
+                </div>
+              </div>
+              <div className="flex items-center justify-between p-4">
+                <span>Dollars Per Junk:</span>
+                <div className="flex items-center">
+                  <input
+                    type="number"
+                    step="1.0"
+                    value={gameSettings.dollarsPerJunk}
+                    onChange={(e) => setGameSettings(prev => ({
+                      ...prev,
+                      dollarsPerJunk: e.target.value
                     }))}
                     className="w-24 px-2 py-1 text-right border rounded"
                     placeholder="0.00"

@@ -27,6 +27,7 @@ interface AddGameRequest {
   mirrorGameID: string | null;
   teeID: string;
   showPayouts: number;
+  showJunks: number;
   gameType: string;
   tournamentName: string;
   showSkins: number;
@@ -35,6 +36,7 @@ interface AddGameRequest {
   teamCount: number;
   source: string;
   skinsAnte: number;
+  dollarsPerJunk: number;
   gameAnte: number;
   ownerDeviceID: string | null;
   teamPlayerType: string;
@@ -71,6 +73,7 @@ interface UpdateGameRequest {
   mirrorGameID: string | null;
   teeID: string;
   showPayouts: number;
+  showJunks: number;
   gameType: string;
   tournamentName: string;
   showSkins: number;
@@ -79,6 +82,7 @@ interface UpdateGameRequest {
   teamCount: number;
   source: string;
   skinsAnte: number;
+  dollarsPerJunk: number;
   gameAnte: number;
   teamPlayerType: string;
   ownerDeviceID: string;
