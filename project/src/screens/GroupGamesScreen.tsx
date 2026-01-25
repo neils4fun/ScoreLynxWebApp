@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, RotateCw, Pencil, Trash2 } from 'lucide-react';
-import { fetchGroupGames, deleteGame } from '../api/gameApi';
+import { ArrowLeft, RotateCw, Pencil, Trash2, Files } from 'lucide-react';
+import { fetchGroupGames, deleteGame, cloneGame } from '../api/gameApi';
 import { GameCard } from '../components/game/GameCard';
 import { WeatherIcon } from '../components/game/WeatherIcon';
 import type { GolfGroup, Game } from '../types/game';
@@ -24,6 +24,8 @@ export function GroupGamesScreen({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [deletingGameIds, setDeletingGameIds] = useState<Set<string>>(new Set());
+  const [cloningGameIds, setCloningGameIds] = useState<Set<string>>(new Set());
+  const [cloneError, setCloneError] = useState<string | null>(null);
 
   const loadGames = async () => {
     setIsLoading(true);
@@ -47,6 +49,62 @@ export function GroupGamesScreen({
     e.stopPropagation();
     if (onEditGame) {
       onEditGame(game);
+    }
+  };
+
+  const handleCloneGame = async (e: React.MouseEvent, game: Game) => {
+    e.stopPropagation();
+    
+    if (!game.gameID) {
+      setCloneError('Clone Failed: Game ID not found.');
+      return;
+    }
+
+    setCloningGameIds(prev => new Set(prev).add(game.gameID));
+    setCloneError(null);
+
+    try {
+      const response = await cloneGame({
+        gameID: game.gameID,
+        ownerDeviceID: 'SLPWeb'
+      });
+      const serverStatus = response.status;
+
+      // Handle specific error codes
+      if (serverStatus.code === 0) {
+        // Success - reload games to show the cloned game
+        await loadGames();
+      } else {
+        // Handle specific error codes based on code number and message
+        const message = serverStatus.message.toLowerCase();
+        let errorMessage = 'Clone Failed: ';
+        
+        // Check for specific error conditions based on message content
+        if (message.includes('not found') || message.includes('game not found')) {
+          errorMessage += 'Game not found. The game may have been deleted.';
+        } else if (message.includes('round 1') || message.includes('not a round 1')) {
+          errorMessage += 'The selected game is not a round 1 game.';
+        } else if (message.includes('original') && message.includes('current date')) {
+          errorMessage += 'The original game selected to clone has the current date.';
+        } else if (message.includes('current date') && message.includes('exists')) {
+          errorMessage += 'A game with the current date already exists for this group.';
+        } else {
+          // Fallback to server message
+          errorMessage += serverStatus.message;
+        }
+        
+        setCloneError(errorMessage);
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred';
+      setCloneError(`Clone Failed: ${errorMessage}`);
+      console.error('Error cloning game:', err);
+    } finally {
+      setCloningGameIds(prev => {
+        const next = new Set(prev);
+        next.delete(game.gameID);
+        return next;
+      });
     }
   };
 
@@ -146,6 +204,15 @@ export function GroupGamesScreen({
                 </div>
                 <div className="flex flex-col space-y-1 py-2">
                   <button
+                    onClick={(e) => handleCloneGame(e, game)}
+                    disabled={cloningGameIds.has(game.gameID)}
+                    className={`p-1.5 hover:bg-gray-100 rounded-full text-gray-500 hover:text-blue-600
+                      bg-white shadow-sm transition-colors
+                      ${cloningGameIds.has(game.gameID) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  >
+                    <Files className="w-4 h-4" />
+                  </button>
+                  <button
                     onClick={(e) => handleEditGame(e, game)}
                     className="p-1.5 hover:bg-gray-100 rounded-full text-gray-500 hover:text-blue-600
                       bg-white shadow-sm transition-colors"
@@ -177,6 +244,26 @@ export function GroupGamesScreen({
           </div>
         )}
       </div>
+
+      {/* Clone Error Dialog */}
+      {cloneError && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-md w-full p-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Clone Failed</h2>
+            <p className="text-gray-700 mb-6">
+              {cloneError.replace('Clone Failed: ', '')}
+            </p>
+            <div className="flex justify-end">
+              <button
+                onClick={() => setCloneError(null)}
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 } 

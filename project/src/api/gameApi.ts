@@ -53,6 +53,20 @@ interface DeleteGameResponse {
   };
 }
 
+interface CloneGameRequest {
+  gameID: string;
+  ownerDeviceID: string;
+}
+
+interface CloneGameResponse {
+  status: {
+    code: number;
+    message: string;
+  };
+  clonedGameID: number;
+  clonedGames: number[];
+}
+
 interface UpdateGameRequest {
   gameID: string;
   showPaceOfPlay: number;
@@ -340,6 +354,30 @@ export async function deleteGame(gameId: string): Promise<DeleteGameResponse> {
     return data;
   } catch (error) {
     console.error('Error deleting game:', error);
+    throw error;
+  }
+}
+
+export async function cloneGame(params: CloneGameRequest): Promise<CloneGameResponse> {
+  try {
+    const response = await fetch(`${API_BASE}/cloneGame`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(params),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json() as CloneGameResponse;
+    
+    // Return the response even if status code is not 0, so caller can handle specific error codes
+    return data;
+  } catch (error) {
+    console.error('Error cloning game:', error);
     throw error;
   }
 }

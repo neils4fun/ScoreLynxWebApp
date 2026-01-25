@@ -247,6 +247,8 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
   const [showSkinsTypeSelector, setShowSkinsTypeSelector] = useState(false);
   const [showCourseSelector, setShowCourseSelector] = useState(false);
   const [showMirrorGameSelector, setShowMirrorGameSelector] = useState(false);
+  const [showGameTypeChangeConfirm, setShowGameTypeChangeConfirm] = useState(false);
+  const [pendingGameType, setPendingGameType] = useState<GameMeta | null>(null);
 
   const isFormComplete = () => {
     return (
@@ -371,12 +373,34 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
   };
 
   const handleGameTypeSelect = (selectedGameType: GameMeta) => {
+    // If updating an existing game and teamPlayerType is changing, show warning
+    if (isEditMode && game && game.teamPlayerType && 
+        game.teamPlayerType !== selectedGameType.teamPlayerType) {
+      // Store the pending game type and show confirmation modal
+      setPendingGameType(selectedGameType);
+      setShowGameTypeSelector(false);
+      setShowGameTypeChangeConfirm(true);
+      return;
+    }
+    
+    // No warning needed, apply change directly
+    applyGameTypeChange(selectedGameType);
+  };
+
+  const applyGameTypeChange = (selectedGameType: GameMeta) => {
     setSelectedGameMeta(selectedGameType);
     setGameSettings(prev => ({
       ...prev,
       gameType: selectedGameType.type
     }));
     setShowGameTypeSelector(false);
+    setShowGameTypeChangeConfirm(false);
+    setPendingGameType(null);
+  };
+
+  const handleCancelGameTypeChange = () => {
+    setShowGameTypeChangeConfirm(false);
+    setPendingGameType(null);
   };
 
   const handleSkinsTypeSelect = (selectedSkinsType: SkinsMeta) => {
@@ -723,6 +747,32 @@ export function GameFormScreen({ onBack, onSuccess, game }: GameFormScreenProps)
           onSave={handlePayoutsSave}
           initialPayouts={gameSettings.payoutValues}
         />
+      )}
+
+      {/* Game Type Change Confirmation Modal */}
+      {showGameTypeChangeConfirm && pendingGameType && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-md w-full p-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Change Game Type</h2>
+            <p className="text-gray-700 mb-6">
+              Changing the game type will remove all teams, players, and scorecards associated with the current game. This action cannot be undone. Do you want to continue?
+            </p>
+            <div className="flex space-x-4">
+              <button
+                onClick={handleCancelGameTypeChange}
+                className="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => applyGameTypeChange(pendingGameType)}
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
