@@ -29,7 +29,9 @@ export function ScorecardScreen() {
   const [isAddingPlayers, setIsAddingPlayers] = useState(false);
   const [isDeletingPlayer, setIsDeletingPlayer] = useState(false);
   const [showAutoModal, setShowAutoModal] = useState(false);
-  const [selectedAutoOption, setSelectedAutoOption] = useState<'random' | 'abcd' | 'handicap'>('random');
+  const [selectedAutoOption, setSelectedAutoOption] = useState<'random' | 'abcd' | 'handicap' | 'team'>('random');
+  const [noTeamsErrorDialog, setNoTeamsErrorDialog] = useState<string | null>(null);
+  const [isAutoCreating, setIsAutoCreating] = useState(false);
 
   // Save scoring state to localStorage
   useEffect(() => {
@@ -193,29 +195,40 @@ export function ScorecardScreen() {
   };
 
   const handleAutoCreateScorecards = async () => {
-    if (!selectedGame) return;
+    if (!selectedGame) {
+      setError('Please select a game first.');
+      return;
+    }
 
     setError(null);
+    setNoTeamsErrorDialog(null);
+    setIsAutoCreating(true);
 
     try {
       // Convert the selected option to the corresponding strategy number
-      const strategyMap = {
+      const strategyMap: Record<'random' | 'abcd' | 'handicap' | 'team', number> = {
         'random': 0,
         'abcd': 1,
-        'handicap': 2
+        'handicap': 2,
+        'team': 3
       };
-      
+
       const strategy = strategyMap[selectedAutoOption];
-      
-      await autoCreateScorecards(selectedGame.gameID, strategy);
-      
-      // Refresh the scorecard list after successful auto creation
-      await loadScorecards();
-      
-      // Close the modal
-      setShowAutoModal(false);
+      const data = await autoCreateScorecards(selectedGame.gameID, strategy);
+
+      if (data.status.code === 0) {
+        // Refresh the scorecard list after successful auto creation
+        await loadScorecards();
+        setShowAutoModal(false);
+      } else if (data.status.code === 165) {
+        setNoTeamsErrorDialog(data.status.message);
+      } else {
+        setError(data.status.message || 'Failed to auto create scorecards');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to auto create scorecards');
+    } finally {
+      setIsAutoCreating(false);
     }
   };
 
@@ -448,7 +461,7 @@ export function ScorecardScreen() {
           <h2 className="text-2xl font-bold text-gray-900">Scorecards</h2>
           <div className="flex items-center space-x-2">
             <button
-              onClick={() => setShowAutoModal(true)}
+              onClick={() => { setError(null); setShowAutoModal(true); }}
               className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
             >
               Auto
@@ -487,8 +500,10 @@ export function ScorecardScreen() {
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
           <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4">
             <h3 className="text-lg font-semibold mb-4">Auto generate scorecards?</h3>
-            <p className="text-gray-600 mb-6">Doing so will remove any existing scorecards.</p>
-            
+            <p className="text-gray-600 mb-4">Doing so will remove any existing scorecards.</p>
+            {error && (
+              <p className="text-red-600 text-sm mb-4">{error}</p>
+            )}
             <div className="space-y-3 mb-6">
               <label className="flex items-center">
                 <input
@@ -496,7 +511,7 @@ export function ScorecardScreen() {
                   name="autoOption"
                   value="random"
                   checked={selectedAutoOption === 'random'}
-                  onChange={(e) => setSelectedAutoOption(e.target.value as 'random' | 'abcd' | 'handicap')}
+                  onChange={(e) => setSelectedAutoOption(e.target.value as 'random' | 'abcd' | 'handicap' | 'team')}
                   className="mr-3"
                 />
                 <span>Random groups</span>
@@ -507,7 +522,7 @@ export function ScorecardScreen() {
                   name="autoOption"
                   value="abcd"
                   checked={selectedAutoOption === 'abcd'}
-                  onChange={(e) => setSelectedAutoOption(e.target.value as 'random' | 'abcd' | 'handicap')}
+                  onChange={(e) => setSelectedAutoOption(e.target.value as 'random' | 'abcd' | 'handicap' | 'team')}
                   className="mr-3"
                 />
                 <span>ABCD groups</span>
@@ -518,27 +533,59 @@ export function ScorecardScreen() {
                   name="autoOption"
                   value="handicap"
                   checked={selectedAutoOption === 'handicap'}
-                  onChange={(e) => setSelectedAutoOption(e.target.value as 'random' | 'abcd' | 'handicap')}
+                  onChange={(e) => setSelectedAutoOption(e.target.value as 'random' | 'abcd' | 'handicap' | 'team')}
                   className="mr-3"
                 />
                 <span>Like Handicap groups</span>
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="autoOption"
+                  value="team"
+                  checked={selectedAutoOption === 'team'}
+                  onChange={(e) => setSelectedAutoOption(e.target.value as 'random' | 'abcd' | 'handicap' | 'team')}
+                  className="mr-3"
+                />
+                <span>By Team</span>
               </label>
             </div>
 
             <div className="flex space-x-3">
               <button
-                onClick={() => setShowAutoModal(false)}
-                className="flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
+                onClick={() => {
+                  setShowAutoModal(false);
+                  setError(null);
+                }}
+                disabled={isAutoCreating}
+                className="flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel
               </button>
               <button
                 onClick={handleAutoCreateScorecards}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                disabled={isAutoCreating}
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                OK
+                {isAutoCreating ? 'Creating...' : 'OK'}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* No teams error dialog (API error 165) */}
+      {noTeamsErrorDialog !== null && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-[60] flex items-center justify-center">
+          <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4">
+            <h3 className="text-lg font-semibold mb-2">No Teams</h3>
+            <p className="text-gray-600 mb-6">{noTeamsErrorDialog}</p>
+            <button
+              onClick={() => setNoTeamsErrorDialog(null)}
+              className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            >
+              OK
+            </button>
           </div>
         </div>
       )}

@@ -456,6 +456,9 @@ export async function getGamePlayerExScorecardList(gameId: string): Promise<Game
 }
 
 interface AutoCreateScorecardsRequest {
+  source: string;
+  appVersion: string;
+  deviceID: string;
   gameID: string;
   strategy: number;
 }
@@ -469,6 +472,9 @@ interface AutoCreateScorecardsResponse {
 
 export async function autoCreateScorecards(gameId: string, strategy: number): Promise<AutoCreateScorecardsResponse> {
   const payload: AutoCreateScorecardsRequest = {
+    source: APP_SOURCE,
+    appVersion: APP_VERSION,
+    deviceID: DEVICE_ID,
     gameID: gameId,
     strategy
   };
@@ -486,10 +492,5 @@ export async function autoCreateScorecards(gameId: string, strategy: number): Pr
   }
 
   const data = await response.json() as AutoCreateScorecardsResponse;
-  
-  if (data.status.code !== 0) {
-    throw new Error(data.status.message);
-  }
-
   return data;
 }
