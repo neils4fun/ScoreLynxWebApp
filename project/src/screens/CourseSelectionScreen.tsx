@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Search, Loader2 } from 'lucide-react';
 import { API_BASE, APP_VERSION, APP_SOURCE, DEVICE_ID } from '../api/config';
+import { useDebounce } from '../hooks/useDebounce';
 
 interface CourseSelectionScreenProps {
   onBack: () => void;
   onSelectCourse: (course: Course) => void;
+  initialSearchQuery?: string;
 }
 
 interface Tee {
@@ -34,20 +36,22 @@ interface ApiResponse {
   courses: Course[];
 }
 
-export default function CourseSelectionScreen({ onBack, onSelectCourse }: CourseSelectionScreenProps) {
-  const [searchQuery, setSearchQuery] = useState('');
+export default function CourseSelectionScreen({ onBack, onSelectCourse, initialSearchQuery = '' }: CourseSelectionScreenProps) {
+  const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [courses, setCourses] = useState<Course[]>([]);
 
   useEffect(() => {
-    fetchCourses();
-  }, []);
+    fetchCourses(debouncedSearchQuery);
+  }, [debouncedSearchQuery]);
 
-  const fetchCourses = async () => {
+  const fetchCourses = async (search: string) => {
     setIsLoading(true);
     setError(null);
     try {
+      const trimmedSearch = search.trim();
       const response = await fetch(`${API_BASE}/getCourseList`, {
         method: 'POST',
         headers: {
@@ -56,7 +60,8 @@ export default function CourseSelectionScreen({ onBack, onSelectCourse }: Course
         body: JSON.stringify({
           source: APP_SOURCE,
           appVersion: APP_VERSION,
-          deviceID: DEVICE_ID
+          deviceID: DEVICE_ID,
+          ...(trimmedSearch ? { search: trimmedSearch } : {})
         })
       });
 
@@ -86,10 +91,6 @@ export default function CourseSelectionScreen({ onBack, onSelectCourse }: Course
   const handleCourseClick = (course: Course) => {
     onSelectCourse(course);
   };
-
-  const filteredCourses = courses.filter(course =>
-    course.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
 
   return (
     <div className="p-4">
@@ -130,11 +131,11 @@ export default function CourseSelectionScreen({ onBack, onSelectCourse }: Course
           </div>
         ) : (
           <div className="max-h-[calc(100vh-300px)] overflow-y-auto border border-gray-200 rounded-md">
-            {filteredCourses.length === 0 ? (
+            {courses.length === 0 ? (
               <p className="p-4 text-gray-500 text-center">No courses found</p>
             ) : (
               <ul className="divide-y divide-gray-200">
-                {filteredCourses.map((course) => (
+                {courses.map((course) => (
                   <li
                     key={course.courseID}
                     className="p-4 hover:bg-gray-50 cursor-pointer"

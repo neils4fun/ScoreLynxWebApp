@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Search, Loader2 } from 'lucide-react';
+import { ArrowLeft, Search, Loader2, Trash2 } from 'lucide-react';
 import CourseSelectionScreen from './CourseSelectionScreen';
 import TeeSelectionOverlay from '../components/TeeSelectionOverlay';
 import { API_BASE, APP_VERSION, APP_SOURCE, DEVICE_ID } from '../api/config';
+import { deleteTee, fetchCourseTees } from '../api/courseApi';
 
 interface CourseMaintenanceScreenProps {
   onBack: () => void;
@@ -48,7 +49,20 @@ export default function CourseMaintenanceScreen({ onBack }: CourseMaintenanceScr
     handicaps: Array(18).fill(0)
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeletingTee, setIsDeletingTee] = useState(false);
+  const [isLoadingTees, setIsLoadingTees] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const emptyTee = (): Tee => ({
+    teeID: '',
+    name: '',
+    slope: 0,
+    rating: 0,
+    pars: Array(18).fill(0),
+    handicaps: Array(18).fill(0),
+  });
+
+  const canDeleteTee = Boolean(formData.courseID && selectedTee?.teeID);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -61,6 +75,31 @@ export default function CourseMaintenanceScreen({ onBack }: CourseMaintenanceScr
   const handleCourseSelect = (course: Course) => {
     setFormData(course);
     setShowCourseSelection(false);
+  };
+
+  const refreshCourseTees = async (courseId: string) => {
+    const tees = await fetchCourseTees(courseId);
+    setFormData(prev => ({ ...prev, tees }));
+    return tees;
+  };
+
+  const handleFindTees = async () => {
+    if (!formData.courseID) {
+      setSubmitError('Please select a course first.');
+      return;
+    }
+
+    setIsLoadingTees(true);
+    setSubmitError(null);
+
+    try {
+      await refreshCourseTees(formData.courseID);
+      setShowTeeSelection(true);
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : 'Failed to load tees');
+    } finally {
+      setIsLoadingTees(false);
+    }
   };
 
   const handleTeeSelect = async (tee: Tee) => {
@@ -137,6 +176,35 @@ export default function CourseMaintenanceScreen({ onBack }: CourseMaintenanceScr
     }
     
     setSelectedTee(newTee);
+  };
+
+  const handleDeleteTee = async () => {
+    if (!canDeleteTee || !selectedTee?.teeID || isDeletingTee) return;
+
+    const teeName = selectedTee.name || 'this tee';
+    if (!window.confirm(`Delete "${teeName}"? This cannot be undone.`)) {
+      return;
+    }
+
+    setIsDeletingTee(true);
+    setSubmitError(null);
+
+    try {
+      const deletedTeeId = selectedTee.teeID;
+      await deleteTee(deletedTeeId);
+
+      setFormData(prev => ({
+        ...prev,
+        tees: prev.tees
+          ? prev.tees.filter(tee => tee.teeID !== deletedTeeId)
+          : null,
+      }));
+      setSelectedTee(emptyTee());
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : 'Failed to delete tee');
+    } finally {
+      setIsDeletingTee(false);
+    }
   };
 
   // Add validation function
@@ -275,24 +343,10 @@ export default function CourseMaintenanceScreen({ onBack }: CourseMaintenanceScr
         }
       }
 
-      // Success! Clear form or show success message
-      setFormData({
-        courseID: '',
-        name: '',
-        city: '',
-        state: '',
-        region: '',
-        version: '',
-        tees: null
-      });
-      setSelectedTee({
-        teeID: '',
-        name: '',
-        slope: 0,
-        rating: 0,
-        pars: Array(18).fill(0),
-        handicaps: Array(18).fill(0)
-      });
+      // Success — keep course and tee fields; update IDs and refresh tee list from server
+      setFormData(prev => ({ ...prev, courseID }));
+      setSelectedTee(prev => (prev ? { ...prev, teeID } : prev));
+      await refreshCourseTees(courseID);
       alert('Course updated successfully!');
 
     } catch (error) {
@@ -307,6 +361,7 @@ export default function CourseMaintenanceScreen({ onBack }: CourseMaintenanceScr
       <CourseSelectionScreen
         onBack={() => setShowCourseSelection(false)}
         onSelectCourse={handleCourseSelect}
+        initialSearchQuery={formData.name}
       />
     );
   }
@@ -413,14 +468,37 @@ export default function CourseMaintenanceScreen({ onBack }: CourseMaintenanceScr
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
-                <div className="flex items-end">
+                <div className="flex items-end gap-2">
                   <button
                     type="button"
-                    onClick={() => setShowTeeSelection(true)}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center gap-2"
+                    onClick={handleFindTees}
+                    disabled={isLoadingTees}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <Search className="w-4 h-4" />
-                    <span>Find Tees</span>
+                    {isLoadingTees ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Search className="w-4 h-4" />
+                    )}
+                    <span>{isLoadingTees ? 'Loading...' : 'Find Tees'}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleDeleteTee}
+                    disabled={!canDeleteTee || isDeletingTee}
+                    title={canDeleteTee ? 'Delete selected tee' : 'Select a course and tee first'}
+                    className={`px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 flex items-center gap-2 ${
+                      canDeleteTee && !isDeletingTee
+                        ? 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500'
+                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    }`}
+                  >
+                    {isDeletingTee ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="w-4 h-4" />
+                    )}
+                    <span>{isDeletingTee ? 'Deleting...' : 'Delete Tee'}</span>
                   </button>
                 </div>
               </div>
@@ -580,7 +658,7 @@ export default function CourseMaintenanceScreen({ onBack }: CourseMaintenanceScr
         </form>
       </div>
 
-      {showTeeSelection && formData.tees && (
+      {showTeeSelection && formData.tees !== null && (
         <TeeSelectionOverlay
           tees={formData.tees}
           onSelect={handleTeeSelect}
